@@ -19,8 +19,23 @@ class user(models.Model):
     name      = models.CharField(max_length=10)
     profile   = models.CharField(max_length=100)
     userType  = models.IntegerField(max_length=1)
-    token     = models.CharField(max_length=50)
     isDelete  = models.BooleanField(default=False)
+
+"""
+            tokon表
+字段          类型        描述
+
+userID       string      用户标识
+token        string      token值
+domain       string      有效时间 
+
+
+"""
+class userToken(models.Model):
+
+    userID    = models.ForeignKey(user,related_name='username')
+    token     = models.CharField(max_length=32)
+    domain    = models.CharField(max_length=30)
 
 
 """
