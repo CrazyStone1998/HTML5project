@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e665c187-bab3-4b63-aa69-3eb7edb22c6c" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/HTML5project/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/HTML5project/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/weCheck/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/weCheck/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/weCheck/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/weCheck/views.py" afterDir="false" />
-    </list>
+    <list default="true" id="e665c187-bab3-4b63-aa69-3eb7edb22c6c" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -138,9 +133,9 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="581" />
-    <option name="y" value="43" />
+  <component name="ProjectFrameBounds" extendedState="1">
+    <option name="x" value="-485" />
+    <option name="y" value="131" />
     <option name="width" value="1943" />
     <option name="height" value="839" />
   </component>
@@ -266,7 +261,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="878" extended-state="6" />
+    <frame x="-388" y="105" width="1554" height="671" extended-state="1" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -276,7 +271,7 @@
       <window_info anchor="bottom" id="Version Control" order="7" visible="true" weight="0.0" />
       <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.09700521" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.09675325" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" />
       <window_info anchor="right" id="SciView" order="3" />
