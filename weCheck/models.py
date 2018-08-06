@@ -30,6 +30,7 @@ class user(models.Model):
         userNew.passwd = passwd
         userNew.profile = profile
         userNew.userType = userType
+        userNew.isDelete = True
         userNew.save()
         return userNew
 
