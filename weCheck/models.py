@@ -143,19 +143,19 @@ enable        boolean        计划开关
 
 
 class checkPlan(models.Model):
-
-    planID      = models.CharField(max_length=20)
+    scheduleId  = models.CharField(max_length=20)
+    ownerID     = models.ForeignKey(user,related_name='username')
     groupID     = models.ForeignKey(group)
-    startUpTime = models.CharField(max_length=30)
+    startDate   = models.DateField(auto_now_add=True)
+    startUpTime = models.TimeField()
     duration    = models.IntegerField(max_length=5)
     repeat      = models.CharField(max_length=20)
     enable      = models.BooleanField(default=False)
-    isDelete    = models.BooleanField(default=False)
 
     @classmethod
-    def checkPlanObejct(cls,planID,groupID,startUpTime=None,duration=None,repeat=None,enable=False):
+    def checkPlanObejct(cls,scheduleId,groupID,startUpTime=None,duration=None,repeat=None,enable=False):
         new = checkPlan()
-        new.planID = planID
+        new.planID = scheduleId
         new.groupID = groupID
         new.startUpTime = startUpTime
         new.duration = duration

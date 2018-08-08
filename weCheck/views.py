@@ -121,7 +121,6 @@ def user(request):
     error = []
     if request.method == 'POST':
         user = models.user.objects.filter(username=request.session.get('username'))
-        user.username = request.POST.get('username',user.username)
         user.name = request.POST.get('name',user.name)
         img = request.FILES.get('profile')
         if img:
@@ -200,18 +199,98 @@ def checkdisable(request):
     pass
 
 
+@authenticate
 def schedule(request):
-    pass
+    error = []
+    if request.is_ajax() and request.method == 'GET':
+        id = models.checkPlan.objects.filter(groupID=request.GET.get('id'))
+        if id is None:
+            error.append('there is no plan for this group')
+            return JsonResponse({
+                'status':202,
+                'message':error,
+            })
+        else:
+            data = []
 
+            for e in id:
+                data.append({
+                    'planID':e.planID,
+                    'startUpTime':e.startUpTime,
+                    'duration':e.duration,
+                    'enable':e.enable,
+                    'repeat':e.repeat,
+                })
+            return JsonResponse({
+                'status':200,
+                'message':'OK',
+                'data':data,
+        })
+    else:
+        error.append('WRONG method')
+        return JsonResponse({
+            'status':202,
+            'message':error,
+        })
 
+@authenticate
+@ajax_post_only
 def scheduleadd(request):
-    pass
 
+    groupID = request.POST.get('id')
+    startUpTime = request.POST.get('startUpTime')
+    duration = request.POST.get('duration')
+    repeat = request.POST.get('repeat')
+    enable = request.POST.get('enable')
 
+    scheduleId = base64.b32encode(os.urandom(20))
+
+    models.checkPlan.checkPlanObejct(scheduleId,groupID,startUpTime,duration,repeat,enable)
+
+    return JsonResponse({
+        'status':200,
+        'message':'OK',
+        'data':scheduleId
+
+    })
+
+@ajax_post_only
+@authenticate
 def scheduleupdate(request):
-    pass
+    error = []
+    plan = models.checkPlan.objects.filter(scheduleId=request.POST.get('scheduleId'))
+    if plan is None:
+        error.append('plan is not exist')
+    else:
+        plan.startUpTime = request.POST.get('startUpTime',plan.startUpTime)
+        plan.enable      = request.POST.get('enable',plan.enable)
+        plan.duration    = request.POST.get('duration',plan.duration)
+        plan.repeat      = request.POST.get('repeat',plan.repeat)
 
+        plan.save()
+        return JsonResponse({
+            'status':200,
+            'message':'OK'
+        })
+    return JsonResponse({
+        'status':202,
+        'message':error
+    })
 
+@authenticate
+@ajax_post_only
 def scheduledelete(request):
-    pass
-
+    error = []
+    schedule = models.checkPlan.objects.filter(scheduleId = request.POST.get('scheduleId'))
+    if schedule is None:
+        error.append('schedule is not exist')
+    else:
+        schedule.delete()
+        return JsonResponse({
+            'status':200,
+            'message':'OK',
+        })
+    return JsonResponse({
+        'status':202,
+        'message':error,
+    })
