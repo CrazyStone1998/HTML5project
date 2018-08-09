@@ -346,8 +346,15 @@ def scheduleadd(request):
             })
         else:#计划开启状态
             #查找与之相冲突的计划
+            #先查找改组现在开启的计划
             checkList = models.checkPlan.objects.filter(groupID__exact=group).filter(enable__exact=True)#这是本群开启的其他计划
             flag = False#假设这些计划都不冲突
+            #如果这些计划冲突必须满足点：1.有相同的周天 2.当前计划的开启时间+持续时间>原有计划的开始时间 或者原有计划的开始时间+持续时间>当前计划的开始时间
+            weekday=repeat.split(",")
+            for w in weekday:
+                for che in checkList:
+
+
 
 
     else:
