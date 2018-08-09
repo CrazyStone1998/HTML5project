@@ -346,9 +346,10 @@ def scheduleadd(request):
             })
         else:#计划开启状态
             #查找与之相冲突的计划
-            checkList=models.checkPlan.objects.filter(groupID__exact=group).filter(enable__exact=True)#这是本群开启的其他计划
-            flag=False#假设这些计划都不冲突
-            
+            checkList = models.checkPlan.objects.filter(groupID__exact=group).filter(enable__exact=True)#这是本群开启的其他计划
+            flag = False#假设这些计划都不冲突
+
+
     else:
         error.append("you are not the owner of the group or the group is not exist")
         return JsonResponse({
