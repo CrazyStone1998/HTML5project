@@ -5,7 +5,9 @@ from django.http import JsonResponse
 from HTML5project import settings
 import base64
 import os
-
+import time
+import datetime
+from django.db.models import F,Q
 from django.contrib.auth.decorators import login_required
 
 def ajax_post_only(func):
@@ -183,28 +185,176 @@ def groupupdate(request):
 def groupdelete(request):
     pass
 
-
+@authenticate
 def checkstatus(request):
-    pass
+    user = models.user.objects.filter(username=request.session.get('username'))
+    if user is not None:
+        username=user.username
+        nowdate=datetime.date.today()
+        doneList=models.check.objects.filter(members__contains=username).filter(startDate__exact=nowdate).filter(results__contains=username)
+        missedList= models.check.objects.filter(members__contains=username).filter(startDate__exact=nowdate).filter(enable__exact=False).filter(~Q(results__contains=username))
+        openList=models.check.objects.filter(members__contains=username).filter(enable__exact=True)
+        weekdate=nowdate.weekday()+1
+        belong_group=models.group.objects.filter(member__contains=username)#用户所属小组
+        nowtime=datetime.time()
+        futureList=models.checkPlan.objects.filter(groupID__in=belong_group).filter(enable__exact=True).filter(repeat__contains=weekdate).filter(startUpTime__gt=nowtime)
+
+        return JsonResponse({
+            'status': 200,
+            'message': 'success',
+            'data': {
+                "done":[
+
+                ]
 
 
+            }
+        })
+
+
+@ajax_post_only
 def checkcheck(request):
-    pass
+    erro=[]
+    user = models.user.objects.filter(username=request.session.get('username'))
+    username=user.username
+    groupid=request.POST.get('id')
+    group=models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)
+    check=models.check.objects.get(groupID__exact=group)
+    if group is not None:
+        if check.enable is False:
+            erro.append("The group is not checking")
+            return JsonResponse({
+                'status': 202,
+                'message': erro
+            })
+        else:
+            m = check.members
+            m = m+","+username
+            check.members = m
+            check.save()
+            return JsonResponse({
+                'status': 200,
+                'message': 'success'
+            })
 
+    else:
+        erro.append("group is not exist or you are not the member of the group")
+        return JsonResponse({
+            'status': 202,
+            'message': erro
+        })
 
+#开启即时签到
+@ajax_post_only
 def checkenable(request):
-    pass
+    erroe=[]
+    user = models.user.objects.filter(username=request.session.get('username'))
+    ownerID=user.username
+    groupid = request.POST.get('id')
+    group=models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)#查看该用户是否为该群组的所有者
+    if group is not  None:#是该群组的所有者
+        check=models.check.objects.filter(groupID__exact=group).filter(enable__exact=True)#查看该群组是否还在开启签到中，保证一个群组同一时间只能开启一次签到
+        if check is None:#该群组没有处于签到中
+            models.check.checkObject(groupid)#创建新的签到对象
+            return JsonResponse({
+                'status': 200,
+                'message': 'success'
+            })
+        else:#该群组上一次签到还没有结束
+            erroe.append("the group is checking")
+    else:#是该群组的所有者
+        erroe.append("you are not the owner of the group or the group not exists")
+        return JsonResponse({
+            'status': 202,
+            'message': erroe
+        })
 
 
+#结束即时签到
 def checkdisable(request):
-    pass
+    erroe = []
+    user = models.user.objects.filter(username=request.session.get('username'))
+    ownerID = user.username
+    groupid = request.POST.get('id')
+    group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)
+    if group is not None:
+        check=models.check.objects.filter(groupID__exact=group).filter(enable__exact=True)#找到该群组正在进行的签到，接着结束他
+        if check is not None:
+            check.enable = False
+            check.save()
+            return JsonResponse({
+                'status': 200,
+                'message': 'success'
+            })
+        else:
+            erroe.append("该群组没有正在进行的签到")
+            return JsonResponse({
+                'status': 202,
+                'message': erroe
+            })
+    else:
+        erroe.append("you are not the owner of the group or the group not exists")
+        return JsonResponse({
+            'status': 202,
+            'message': erroe
+        })
+
+
+
 
 
 def schedule(request):
-    pass
+    erro=[]
+    user = models.user.objects.filter(username=request.session.get('username'))
+    username=user.username#获取该用户的用户名称
+    groupid = request.POST.get('id')
+    group = models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)#获取该群组，并且检查是否包含该用户
+    if group is not None:
+        planlist=models.checkPlan.objects.filter(groupID__exact=group)
+        return JsonResponse({
+            'status': 200,
+            'message': "ok",
+            'data':[]
+        })
+    else:
+        erro.append("you are not the member of the group or the group is not exists")
+        return JsonResponse({
+            'status': 202,
+            'message': erro
+        })
 
 
+@ajax_post_only
 def scheduleadd(request):
+    error=[]
+    user = models.user.objects.filter(username=request.session.get('username'))
+    username=user.useranme
+    groupid = request.POST.get('id')
+    group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=username)
+    if group is not None:
+        enable=request.POST.get('enable')
+        duration = request.POST.get('duration')
+        repeat = request.POST.get('repeat')
+        if enable is False:#计划关闭状态可以加入
+            startUpTime = request.POST.get('startUpTime')
+
+
+            models.checkPlan.checkPlanObejct(groupid,startUpTime,duration,repeat,enable)
+            return JsonResponse({
+                'status': 200,
+                'message': 'success'
+            })
+        else:#计划开启状态
+            #查找与之相冲突的计划
+            checkList=models.checkPlan.objects.filter(groupID__exact=group).filter(enable__exact=True)#这是本群开启的其他计划
+            flag=False#假设这些计划都不冲突
+            
+    else:
+        error.append("you are not the owner of the group or the group is not exist")
+        return JsonResponse({
+            'status': 202,
+            'message': error
+        })
     pass
 
 

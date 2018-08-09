@@ -1,4 +1,6 @@
 from django.db import models
+import time
+import datetime
 
 # Create your models here.
 """
@@ -89,54 +91,59 @@ class group(models.Model):
         return new
 
 """
-             群组表
+             签到表
 
 字段           类型           描述
 
-checkID        string        签到标识
+checkID        autoField     签到标识
 groupID        string        签到群组
 startUpTime    string        开始时间
 duration       Integer       持续时间
 enable         boolean       签到开关
 results        array         签到成员
 members        array         签到开启时群组成员         
-
+startDate      DateField     签到开启的日期
 """
 class check(models.Model):
 
-    checkID     = models.CharField(max_length=20)
+    checkID     = models.AutoField()
     groupID     = models.ForeignKey(group)
-    startUpTime = models.CharField(max_length=30)
+    startUpTime = models.TimeField()
     duration    = models.IntegerField(max_length=5)
-    enable      = models.BooleanField(default=False)
+    enable      = models.BooleanField(default=True)
     results     = models.CharField(max_length=1000)
     members     = models.CharField(max_length=1000)
+    startDate   =models.DateField(auto_now_add=True)
 
     @classmethod
-    def checkObject(cls,checkID,groupID,startUpTime=None,duration=None,enable=None,results=None,members=None):
+    def checkObject(cls, groupID, duration=None,startUpTime = datetime.time(),results=None):
         new = check()
-        new.checkID = checkID
+        m = ""
+        users = group.objects.filter(groupID__exact=groupID)#属于这个小组的成员
+        for u in users:
+            m = m+","
+            m = m+u.username
         new.groupID = groupID
         new.startUpTime = startUpTime
         new.duration = duration
-        new.enable = enable
         new.results = results
-        new.members = members
+        new.members = m
         new.save()
         return new
 
 
 """
-             群组表
+             签到计划表
 
 字段           类型           描述
 
-planID        string         计划ID
+planID        AutoField         计划ID
 groupID       string         计划作用群组ID
 startUpTime   string         计划开始时间
 duration      Integer        计划持续时间
 repeat        string         计划作用域
 enable        boolean        计划开关
+    
 
 
 """
@@ -144,18 +151,17 @@ enable        boolean        计划开关
 
 class checkPlan(models.Model):
 
-    planID      = models.CharField(max_length=20)
+    planID      = models.AutoField()
     groupID     = models.ForeignKey(group)
-    startUpTime = models.CharField(max_length=30)
+    startUpTime = models.TimeField()
     duration    = models.IntegerField(max_length=5)
     repeat      = models.CharField(max_length=20)
     enable      = models.BooleanField(default=False)
     isDelete    = models.BooleanField(default=False)
 
     @classmethod
-    def checkPlanObejct(cls,planID,groupID,startUpTime=None,duration=None,repeat=None,enable=False):
+    def checkPlanObejct(cls,groupID,startUpTime=None,duration=None,repeat=None,enable=False):
         new = checkPlan()
-        new.planID = planID
         new.groupID = groupID
         new.startUpTime = startUpTime
         new.duration = duration
