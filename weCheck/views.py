@@ -353,7 +353,7 @@ def scheduleadd(request):
             weekday=repeat.split(",")
             for w in weekday:
                 for che in checkList:
-
+                    
 
 
 
