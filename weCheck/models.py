@@ -108,7 +108,7 @@ class check(models.Model):
 
     checkID     = models.AutoField()
     groupID     = models.ForeignKey(group)
-    startUpTime = models.TimeField()
+    startUpTime = models.CharField(max_length=20)
     duration    = models.IntegerField(max_length=5)
     enable      = models.BooleanField(default=True)
     results     = models.CharField(max_length=1000)
@@ -124,7 +124,8 @@ class check(models.Model):
             m = m+","
             m = m+u.username
         new.groupID = groupID
-        new.startUpTime = startUpTime
+        nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
+        new.startUpTime = nowtime
         new.duration = duration
         new.results = results
         new.members = m
@@ -153,7 +154,7 @@ class checkPlan(models.Model):
 
     planID      = models.AutoField()
     groupID     = models.ForeignKey(group)
-    startUpTime = models.TimeField()
+    startUpTime = models.CharField(max_length=20)
     duration    = models.IntegerField(max_length=5)
     repeat      = models.CharField(max_length=20)
     enable      = models.BooleanField(default=False)
