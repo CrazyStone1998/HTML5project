@@ -55,7 +55,7 @@ def authenticate(func):
                 'status': 202,
                 'message':error,
             })
-    return wrapper()
+    return wrapper
 
 
 @ajax_post_only

@@ -17,7 +17,7 @@ userType   Integer     用户身份
 """
 class user(models.Model):
 
-    username  = models.CharField(max_length=30)
+    username  = models.CharField(max_length=30,unique=True)
     passwd    = models.CharField(max_length=32)
     name      = models.CharField(max_length=10)
     profile   = models.CharField(max_length=100)
@@ -48,7 +48,7 @@ domain       string      有效时间
 """
 class userToken(models.Model):
 
-    username  = models.ForeignKey(user,related_name='username')
+    username  = models.ForeignKey(user,to_field='username',on_delete=models.CASCADE)
     token     = models.CharField(max_length=32)
     domain    = models.CharField(max_length=30)
 
@@ -74,9 +74,9 @@ member       array           群组成员
 """
 class group(models.Model):
 
-    groupID   = models.CharField(max_length=20)
+    groupID   = models.CharField(max_length=20,unique=True)
     name      = models.CharField(max_length=20)
-    owner     = models.ForeignKey(user,related_name='username')
+    owner     = models.ForeignKey(user,to_field='username',on_delete=models.CASCADE)
     member    = models.CharField(max_length=1000)
     isDelete    = models.BooleanField(default=False)
 
@@ -106,8 +106,8 @@ startDate      DateField     签到开启的日期
 """
 class check(models.Model):
 
-    checkID     = models.AutoField()
-    groupID     = models.ForeignKey(group)
+    checkID     = models.AutoField(primary_key = True)
+    groupID     = models.ForeignKey(group,to_field = 'groupID',on_delete=models.CASCADE)
     startUpTime = models.CharField(max_length=20)
     duration    = models.IntegerField(max_length=5)
     enable      = models.BooleanField(default=True)
@@ -152,8 +152,8 @@ enable        boolean        计划开关
 
 class checkPlan(models.Model):
 
-    planID      = models.AutoField()
-    groupID     = models.ForeignKey(group)
+    planID      = models.AutoField(primary_key = True)
+    groupID     = models.ForeignKey(group,to_field = 'groupID',on_delete=models.CASCADE)
     startUpTime = models.CharField(max_length=20)
     duration    = models.IntegerField(max_length=5)
     repeat      = models.CharField(max_length=20)
