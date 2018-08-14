@@ -17,8 +17,8 @@ userType   Integer     用户身份
 """
 class user(models.Model):
 
-    username  = models.CharField(max_length=30,unique=True)
-    passwd    = models.CharField(max_length=32)
+    username  = models.CharField(max_length=30,unique=True,primary_key=True)
+    passwd    = models.CharField(max_length=100)
     name      = models.CharField(max_length=10)
     profile   = models.CharField(max_length=100)
     userType  = models.IntegerField(max_length=1)
@@ -32,34 +32,9 @@ class user(models.Model):
         userNew.passwd = passwd
         userNew.profile = profile
         userNew.userType = userType
-        userNew.isDelete = True
+        userNew.isDelete = False
         userNew.save()
         return userNew
-
-"""
-            tokon表
-字段          类型        描述
-
-userID       string      用户标识
-token        string      token值
-domain       string      有效时间 
-
-
-"""
-class userToken(models.Model):
-
-    username  = models.ForeignKey(user,to_field='username',on_delete=models.CASCADE)
-    token     = models.CharField(max_length=32)
-    domain    = models.CharField(max_length=30)
-
-    @classmethod
-    def userTokenObject(cls,username,token,domain=None):
-        new = userToken()
-        new.username = username
-        new.token = token
-        new.domain = domain
-        new.save()
-        return new
 
 
 """

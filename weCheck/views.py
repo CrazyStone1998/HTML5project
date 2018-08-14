@@ -1,14 +1,13 @@
-from django.contrib.auth.hashers import make_password,check_password
 from django.contrib.auth import logout
-from weCheck import models
+from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from HTML5project import settings
-import base64
+from django.db.models import F,Q
+from weCheck import models
+from common.auth import userSystem
 import os
 import time
 import datetime
-from django.db.models import F,Q
-from django.contrib.auth.decorators import login_required
 
 def ajax_post_only(func):
     '''
@@ -20,10 +19,10 @@ def ajax_post_only(func):
     '''
     def wrapper(request,*args,**kwargs):
         error = []
-        if request.is_ajax() and request.method == 'POST':
+        if request.method == 'POST':
             return func(request,*args,**kwargs)
         else:
-            error.append('method error')
+            error.append('request.method is not POST')
             return JsonResponse({
                 'status':202,
                 'message':error,
@@ -31,64 +30,43 @@ def ajax_post_only(func):
     return wrapper
 
 
-def authenticate(func):
-    """
-    装饰器
-    验证用户登陆状态
-
-    :param func:
-    :return:
-    """
-    def wrapper(request,*args,**kwargs):
-        error = []
-        session_name = request.session.get('username')
-        session_token = request.session.get('token')
-        usercheck = models.user.objects.filter(username=session_name)
-        if usercheck is not None:
-            return func(request,*args,**kwargs)
-        else:
-            if usercheck is None:
-                error.append('user off-line')
-            elif usercheck.token == session_token:
-                error.append('wrong request')
-            return JsonResponse({
-                'status': 202,
-                'message':error,
-            })
-    return wrapper
-
-
 @ajax_post_only
 def login(request):
-    error = []
+    '''
+    登陆函数
+    :param request:
+    :return:
+    '''
+
+    #获取用户 账户 和 密码
     username = request.POST.get('username')
     password = request.POST.get('password')
-    userlogin = models.user.objects.filter(username=username)
-    if user is not None:
-        if check_password(password, userlogin.passwd):
-            token = base64.b32encode(os.urandom(20))
-            models.userToken.userTokenObject(username,token)
-            request.session['token'] = token
-            request.session['username'] = username
-            request.session['SESSION_KEY'] = user._meta.pk.value_to_string(user)
-            return JsonResponse({
-                                 'status':200,
-                                })
-        else:
-            error.append('WRONG password')
+    #获取user对象
+    user = userSystem(request)
+    #user登陆 认证
+    error = user.authentication(username=username,password=password)
+    #error为空 则登陆成功
+    #error不为空 则登陆不成功
+    if error:
+        return JsonResponse({
+            'status':200,
+            'message':'OK',
+        })
     else:
-        error.append('USER not exist')
-    return JsonResponse({
+        return JsonResponse({
                             'status':202,
                             'message':error
                                         })
 
 
 
-
-
 def logout(request):
-
+    '''
+    账号 登出
+    :param request:
+    :return:
+    '''
+    #清理 session
     logout(request)
 
     return JsonResponse({
@@ -96,30 +74,47 @@ def logout(request):
         'message':'OK',
     })
 
+
 @ajax_post_only
 def register(request):
+    #错误信息列表
     error = []
+    #后台获取并判断用户名和密码 是否为空
     username = request.POST.get('username')
-    if models.user.objects.filter(username=username) is None:
-        passwd = make_password(request.POST.get('password'))
-        name = request.POST.get('name')
-        img = request.FILES.get('profile')
+    passwd = request.POST.get('password')
+    if username is None or passwd is None:
+        error.append('The username&passwd cannot be empty')
+        #获取并判断 用户名是否存在
+    elif not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():
+
+        passwd   = make_password(passwd)
+        name     = request.POST.get('name')
+        img      = request.FILES.get('profile')
         userType = request.POST.get('userType')
-        profile = settings.STATIC_URL+'weCheck/'+username+'.jpg'
-        with open(os.path.join(settings.STATIC_ROOT,'weCheck/img'+username+'.jpg'),'wb') as f:
-            f.write(img)
+        profile  = 'weCheck/'+username+'.jpg'
+        # 将 用户 大脸照 写入 本地文件中
+        imgPath  = os.path.join(settings.STATIC_ROOT,'weCheck','img',username+'.jpg')
+        # 判断用户 大脸照 是否存在 若存在 重写
+        if os.path.exists(imgPath):
+            os.remove(imgPath)
+        with open(imgPath,'wb+') as f:
+            for chunk in img.chunks():
+                f.write(chunk)
+        #调用 model类的 新建对象方法 存储用户对象
         models.user.userObject(username,passwd,name,profile,userType,)
+        #返回 json
         return JsonResponse({
                              'status':200,
+                             'message':'OK'
                                         })
     else:
-        error.append('REAPEAT of username')
+        error.append('Username already exists')
     return JsonResponse({
-        'status':202,
-        'message':error,
-    })
+            'status':202,
+            'message':error,
+        })
 
-@authenticate
+
 def user(request):
     error = []
     if request.method == 'POST':
@@ -186,7 +181,7 @@ def groupupdate(request):
 def groupdelete(request):
     pass
 
-@authenticate
+
 def checkstatus(request):
     user = models.user.objects.filter(username=request.session.get('username'))
     if user is not None:
@@ -260,7 +255,7 @@ def checkstatus(request):
 
 @ajax_post_only
 def checkcheck(request):
-    erro=[]
+    error=[]
     user = models.user.objects.filter(username=request.session.get('username'))
     username=user.username
     groupid=request.POST.get('id')
@@ -268,10 +263,10 @@ def checkcheck(request):
     check=models.check.objects.get(groupID=group)
     if group is not None:
         if check.enable is False:
-            erro.append("The group is not checking")
+            error.append("The group is not checking")
             return JsonResponse({
                 "status": 202,
-                "message": erro
+                "message": error
             })
         else:
             m = check.members
@@ -284,16 +279,16 @@ def checkcheck(request):
             })
 
     else:
-        erro.append("group is not exist or you are not the member of the group")
+        error.append("group is not exist or you are not the member of the group")
         return JsonResponse({
             "status": 202,
-            "message": erro
+            "message": error
         })
 
 #开启即时签到
 @ajax_post_only
 def checkenable(request):
-    erroe=[]
+    error=[]
     user = models.user.objects.filter(username=request.session.get('username'))
     ownerID=user.username
     groupid = request.POST.get('id')
@@ -307,18 +302,18 @@ def checkenable(request):
                 "message": 'ok'
             })
         else:#该群组上一次签到还没有结束
-            erroe.append("the group is checking")
+            error.append("the group is checking")
     else:#是该群组的所有者
-        erroe.append("you are not the owner of the group or the group not exists")
+        error.append("you are not the owner of the group or the group not exists")
         return JsonResponse({
             "status": 202,
-            "message": erroe
+            "message": error
         })
 
 
 #结束即时签到
 def checkdisable(request):
-    erroe = []
+    error = []
     user = models.user.objects.filter(username=request.session.get('username'))
     ownerID = user.username
     groupid = request.POST.get('id')
@@ -333,16 +328,16 @@ def checkdisable(request):
                 "message": "ok"
             })
         else:
-            erroe.append("该群组没有正在进行的签到")
+            error.append("该群组没有正在进行的签到")
             return JsonResponse({
                 "status": 202,
-                "message": erroe
+                "message": error
             })
     else:
-        erroe.append("you are not the owner of the group or the group not exists")
+        error.append("you are not the owner of the group or the group not exists")
         return JsonResponse({
             "status": 202,
-            "message": erroe
+            "message": error
         })
 
 
@@ -350,7 +345,7 @@ def checkdisable(request):
 
 
 def schedule(request):
-    erro=[]
+    error=[]
     user = models.user.objects.filter(username=request.session.get('username'))
     username=user.username#获取该用户的用户名称
     groupid = request.POST.get('id')
@@ -373,10 +368,10 @@ def schedule(request):
             "data":planlist_request
         })
     else:
-        erro.append("you are not the member of the group or the group is not exists")
+        error.append("you are not the member of the group or the group is not exists")
         return JsonResponse({
             "status": 202,
-            "message": erro
+            "message": error
         })
 
 

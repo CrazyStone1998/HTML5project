@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'e$3-sqham-+@&rkzlg!jtsqp7+r8$tpp*0x^gluoftk)yju#p$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['39.106.131.88',]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -41,6 +41,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',	# This must be first on the list
+    'Middle.authenticationMiddleWare.authenticationMiddleWare'
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -48,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware', # This must be last
 ]
 
 ROOT_URLCONF = 'HTML5project.urls'
@@ -107,6 +110,33 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+#redis
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379',
+        "OPTIONS": {
+            'DB':1,
+            'PASSWORD':'',
+            #'PARSER_CLASS': 'redis.connection.HiredisParser',
+            'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
+            'CONNECTION_POOL_CLASS_KWARGS': {
+                        'max_connections': 50,
+                        'timeout': 20,
+                        },
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    },
+}
+
+
+REDIS_TIMEOUT=7*24*60*60
+CUBES_REDIS_TIMEOUT=60*60
+NEVER_REDIS_TIMEOUT=365*24*60*60
+
+SESSION_ENGINE = 'redis_sessions.session'
+SESSION_REDIS_PREFIX = 'session'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
