@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -42,14 +41,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.cache.UpdateCacheMiddleware',	# This must be first on the list
-    'Middle.authenticationMiddleWare.authenticationMiddleWare'
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'MiddleWare.auth.authenticationMiddleWare',
     'django.middleware.cache.FetchFromCacheMiddleware', # This must be last
 ]
 
@@ -135,7 +134,7 @@ REDIS_TIMEOUT=7*24*60*60
 CUBES_REDIS_TIMEOUT=60*60
 NEVER_REDIS_TIMEOUT=365*24*60*60
 
-SESSION_ENGINE = 'redis_sessions.session'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_REDIS_PREFIX = 'session'
 
 # Internationalization

@@ -21,7 +21,7 @@ class user(models.Model):
     passwd    = models.CharField(max_length=100)
     name      = models.CharField(max_length=10)
     profile   = models.CharField(max_length=100)
-    userType  = models.IntegerField(max_length=1)
+    userType  = models.IntegerField()
     isDelete  = models.BooleanField(default=False)
 
     @classmethod
@@ -84,7 +84,7 @@ class check(models.Model):
     checkID     = models.AutoField(primary_key = True)
     groupID     = models.ForeignKey(group,to_field = 'groupID',on_delete=models.CASCADE)
     startUpTime = models.CharField(max_length=20)
-    duration    = models.IntegerField(max_length=5)
+    duration    = models.IntegerField()
     enable      = models.BooleanField(default=True)
     results     = models.CharField(max_length=1000)
     members     = models.CharField(max_length=1000)
@@ -130,7 +130,7 @@ class checkPlan(models.Model):
     planID      = models.AutoField(primary_key = True)
     groupID     = models.ForeignKey(group,to_field = 'groupID',on_delete=models.CASCADE)
     startUpTime = models.CharField(max_length=20)
-    duration    = models.IntegerField(max_length=5)
+    duration    = models.IntegerField()
     repeat      = models.CharField(max_length=20)
     enable      = models.BooleanField(default=False)
     isDelete    = models.BooleanField(default=False)
