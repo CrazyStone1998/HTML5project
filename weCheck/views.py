@@ -626,5 +626,3 @@ def scheduledelete(request):
             "status":202,
             "message":error
         })
-
-
