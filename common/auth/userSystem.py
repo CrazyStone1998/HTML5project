@@ -2,8 +2,8 @@
 #Redis
 
 import redis
-import datetime
 import hashlib
+from datetime import datetime
 from weCheck import models
 from django.contrib.auth.hashers import check_password
 
@@ -28,12 +28,16 @@ class userSystem(object):
         :param password:
         :return:
         '''
+
         error = []
+        # 获取登陆对象
         userlogin = models.user.objects.get(username=username)
         if userlogin is not None:
-
+            # 设置 self 中维护的username，设置缓存时需要
+            self.username = username
+            # 检测 密码
             if check_password(password, userlogin.passwd):
-
+                # 设置 缓存
                 self.setCookieAndSession()
 
                 return error
@@ -53,8 +57,7 @@ class userSystem(object):
         self.sessionID = self.request.session.get('sessionID')
 
         if re.exists('sessionID_%s' % self.sessionID):
-
-            return re.hget('sessionID_%s' %self.sessionID,'username').decode()
+            return re.hget('sessionID_%s' % self.sessionID, 'username').decode()
 
         else:
             return None
@@ -68,7 +71,7 @@ class userSystem(object):
             sessionID = self.request.session.get('sessionID')
 
             if re.exists('sessionID_%s' % sessionID):
-                re.hdel('sessionID_%s' % sessionID,['username','token'])
+                re.delete('sessionID_%s' % sessionID)
             return True
         return False
     def testCookie(self):
@@ -93,9 +96,9 @@ class userSystem(object):
         self.sessionID = self.request.session.get('sessionID')
         self.token = self.request.session.get('token')
 
-        if re.exists('sessionID_%s' %self.sessionID):
-            token_redis = re.hget('sessionID_%s' %self.sessionID,'token').decode()
-            username_redis = re.hget('sessionID_%s' %self.sessionID,'username').decode()
+        if re.exists('sessionID_%s' % self.sessionID):
+            token_redis = re.hget('sessionID_%s' % self.sessionID,'token').decode()
+            username_redis = re.hget('sessionID_%s' % self.sessionID,'username').decode()
 
             if token_redis == self.token:
                 return username_redis
@@ -109,11 +112,11 @@ class userSystem(object):
 
         self.sessionID = self.request.session.get('sessionID')
         if not self.sessionID:
-            #set cookie
-
+            # set cookie
+            # md5 加密 随机生成
             hash = hashlib.md5()
             token = hashlib.md5()
-            hashID =hash.hexdigest()
+            hashID = hash.hexdigest()
             tokenID = token.hexdigest()
 
             self.request.session['sessionID'] = hashID
@@ -121,9 +124,12 @@ class userSystem(object):
             self.sessionID = hashID
             self.token = tokenID
 
-        if not re.exists('sessionID_%s' %self.sessionID):
-            #set session
-            re.hmset('sessionID_%s' %self.sessionID,{'username':self.username,'token':self.token})
+        # 判断缓存中是否存在该 sessionID
+        if not re.exists('sessionID_%s' % self.sessionID):
+
+            # set session
+            re.hmset('sessionID_%s' % self.sessionID, {'username': self.username, 'token': self.token})
+
         return True
 
 

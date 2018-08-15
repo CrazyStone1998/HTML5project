@@ -127,9 +127,10 @@ def userGET(request):
     error = []
     assert request.method == 'GET'
     # 获取用户对象
-
-    user = models.user.objects.get(username=userSystem(request).getUsername())
-
+    try:
+        user = models.user.objects.get(username=userSystem(request).getUsername())
+    except Exception as e:
+        print('somthing is wrong')
     if user is not None:
 
         return JsonResponse({
