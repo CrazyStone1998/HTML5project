@@ -215,7 +215,7 @@ def groupdelete(request):
 
 
 def checkstatus(request):
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     if user is not None:
         username=user.username
         nowdate=datetime.date.today()
@@ -288,7 +288,7 @@ def checkstatus(request):
 @ajax_post_only
 def checkcheck(request):
     error=[]
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     username=user.username
     groupid=request.POST.get('id')
     group=models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)
@@ -321,7 +321,7 @@ def checkcheck(request):
 @ajax_post_only
 def checkenable(request):
     error=[]
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     ownerID=user.username
     groupid = request.POST.get('id')
     group=models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)#查看该用户是否为该群组的所有者
@@ -346,7 +346,7 @@ def checkenable(request):
 #结束即时签到
 def checkdisable(request):
     error = []
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     ownerID = user.username
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)
@@ -378,7 +378,7 @@ def checkdisable(request):
 
 def schedule(request):
     error=[]
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     username=user.username#获取该用户的用户名称
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)#获取该群组，并且检查是否包含该用户
@@ -410,7 +410,7 @@ def schedule(request):
 @ajax_post_only
 def scheduleadd(request):
     error=[]
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
 
     username=user.useranme
     groupid = request.POST.get('id')
@@ -520,7 +520,7 @@ def scheduleadd(request):
 @ajax_post_only
 def scheduleupdate(request):
     error = []
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     username = user.useranme
     scheduleId= request.POST.get('scheduleId')
     check_plan = models.checkPlan.objects.get(planID=scheduleId)
@@ -658,5 +658,3 @@ def scheduledelete(request):
             "status":202,
             "message":error
         })
-
-
