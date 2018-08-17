@@ -1,5 +1,5 @@
-#coding = utf-8
-#Redis
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 
 import redis
 import hashlib
@@ -114,8 +114,8 @@ class userSystem(object):
         if not self.sessionID:
             # set cookie
             # md5 加密 随机生成
-            hash = hashlib.md5()
-            token = hashlib.md5()
+            hash = hashlib.sha256(self.username.encode("utf8"))
+            token = hashlib.sha256((self.username.encode("utf8")))
             hashID = hash.hexdigest()
             tokenID = token.hexdigest()
 

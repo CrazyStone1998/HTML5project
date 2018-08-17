@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from HTML5project import settings
@@ -9,7 +12,16 @@ import os
 import time
 import datetime
 
-
+def imgRescource(request):
+    '''
+    # 获取用户 大脸照
+    :param request:
+    :return:
+    '''
+    path = settings.STATIC_ROOT+'/weCheck/img/'+request.path
+    with open(path,'rb') as f:
+        img = f.read()
+    return HttpResponse(img, content_type='image/jpg')
 
 @ajax_post_only
 def login(request):
@@ -19,15 +31,15 @@ def login(request):
     :return:
     '''
 
-    #获取用户 账户 和 密码
+    # 获取用户 账户 和 密码
     username = request.POST.get('username')
     password = request.POST.get('password')
-    #获取user对象
+    # 获取user对象
     user = userSystem(request)
-    #user登陆 认证
+    # user登陆 认证
     error = user.authentication(username=username,password=password)
-    #error为空 则登陆成功
-    #error不为空 则登陆不成功
+    # error为空 则登陆成功
+    # error不为空 则登陆不成功
     if not error:
         return JsonResponse({
             'status':200,
@@ -46,10 +58,10 @@ def logout(request):
     :param request:
     :return:
     '''
-    #清理缓存
+    # 清理缓存
     user = userSystem(request)
     user.delCache()
-    #清理 session
+    # 清理 session
     request.session.flush()
 
     return JsonResponse({
@@ -60,14 +72,14 @@ def logout(request):
 
 @ajax_post_only
 def register(request):
-    #错误信息列表
+    # 错误信息列表
     error = []
-    #后台获取并判断用户名和密码 是否为空
+    # 后台获取并判断用户名和密码 是否为空
     username = request.POST.get('username')
     passwd = request.POST.get('password')
     if username is None or passwd is None:
         error.append('The username&passwd cannot be empty')
-        #获取并判断 用户名是否存在
+        # 获取并判断 用户名是否存在
     elif not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():
 
         passwd   = make_password(passwd)
@@ -107,7 +119,7 @@ def user_splitter(request,GET=None,POST=None):
     :param request:
     :return:
     '''
-    #错误信息列表
+    # 错误信息列表
     error = []
     if request.method == 'GET' and GET is not None:
         return GET(request)
@@ -130,7 +142,12 @@ def userGET(request):
     try:
         user = models.user.objects.get(username=userSystem(request).getUsername())
     except Exception as e:
-        print('somthing is wrong')
+        # 处理异常
+        error.append('user is not exist')
+        return JsonResponse({
+            'status': 202,
+            'message': error
+        })
     if user is not None:
 
         return JsonResponse({
