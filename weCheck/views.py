@@ -8,7 +8,7 @@ from common.decorator.ajax_post_only import ajax_post_only
 import os
 import time
 import datetime
-
+import string,random
 
 
 @ajax_post_only
@@ -189,29 +189,268 @@ def userPOST(request):
 
 
 def group(request):
-    pass
+    error = []
+    id = request.GET.get('id')
+    group = models.group.objects.get(groupID=id)
+    user = models.user.objects.get(username=userSystem(request).getUsername())
+    userContain =models.group.objects.filter(member__contains=user.username)
+    if group is not None:
+        groupID = group.groupID
+        name = group.name
+        owner = group.owner
+        member = group.member
+        role = 0
+        if user.username == owner:
+            role = 2
+            check = models.check.objects.get(groupID=groupID)
+            state = check.enable
+            return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'member': member,
+                                     'role': role
+                                 },
+                                 'state':state
+                                 })
+        elif userContain is not None:
+            role = 1
+            check = models.check.objects.get(groupID=groupID)
+            state = check.enable
+            if state == True:
+                checked = models.check.objects.filter(groupID=groupID,members__contains=user.username)
+                if checked is not None:
+                    checked = True
+                elif checked is None:
+                    checked =  False
+                return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'role': role
+                                 },
+                                 'state': state,
+                                 'checked':checked
+                                 })
+            elif state ==  False:
+                return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'role': role
+                                 },
+                                 'state': state
+                                 })
+        else:
+            return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'role': role
+                                 },
+                                 })
+    else:
+        error.append('group is not exist')
+        return JsonResponse({
+            'status':202,
+            'message':error
+        })
+
+
 
 def grouplist(request):
-    pass
+    error = []
+    user = models.user.objects.get(username=userSystem(request).getUsername())
+    data = []
+    group_message = {}
+    if user is not None:
+        if user.userType == 1:
+            groups = models.group.objects.filter(owner=user.username)
 
+            for group in groups:
+                groupID = group.groupID
+                name = group.name
+                owner = group.owner
+                member = group.member
+                check = models.check.objects.get(groupID=groupID)
+                state = check.enable
+                group_message = {'id':groupID,'name':name,'owner':owner,'member':member,'state':state,'role':2}
+                data.append(group_message)
+            return     JsonResponse({'status':200,
+                                 'message':'success',
+                                 'data':data
+                                 })
+        else :
+            groups = models.group.objects.filter(member__contains=user.username)
+
+            for group in groups :
+                groupID = group.groupID
+                name = group.name
+                owner = group.owner
+
+                check = models.check.objects.get(groupID=groupID)
+                state = check.enable
+                if state == True:
+                    checked = models.check.objects.filter(groupID=groupID, members__contains=user.username)
+                    if checked is not None:
+                        checked = True
+                    elif checked is None:
+                        checked = False
+                    group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1,'checked':checked}
+                    data.append(group_message)
+                    return JsonResponse({'status':200,
+                                 'message':'success',
+                                 'data':data
+                                 })
+                else:
+                    group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1}
+                    data.append(group_message)
+                    return JsonResponse({'status':200,
+                                 'message':'success',
+                                 'data':data
+                                 })
+    else:
+        error.append("can\'t get the user ")
+        return JsonResponse({'status':202,
+                             'message':error,
+                             'data':group_message
+                             })
+
+
+
+#创建group
 def groupadd(request):
-    pass
+    error = []
+    user = models.user.objects.get(username=userSystem(request).getUsername())
+    if user.userType == 1:
+        name = request.POST.get('name')
+        id = ''.join(random.sample(string.ascii_letters+string.digits,6))
+        #生成6位的随机口令由大写小写字母和数字随机组成，多达21亿多种结果,基本不能重复
+        newGroup,flag=models.group.objects.get_or_create(groupID=id,name=name,member='',owner=user.username,isDelete=False)
+        if newGroup is not None:
+            return JsonResponse({'status':200,
+                                 'message':'OK',
+                                 'data':id,
+            })
+        else:
+            error.append('group id repeat,create group fault')
+            return JsonResponse({
+                'status':202,
+                'message':error
+            })
+    else:
+        error.append('user type error,must be monitor')
+        return JsonResponse({
+            'status':403,
+            'message':error
+        })
 
 
+#加入群组
 def groupjoin(request):
-    pass
+    error = []
+    user = models.user.objects.get(userSystem(request).getUsername())
+    if user.userType == 0:
+        id = request.POST.get('id')
+        group = models.group.objects.get(groupID=id)
+        group.member = group.member +" "+user.username
+        group.save()
+        return JsonResponse({
+            'status':200,
+            'message':'success'
+        })
+    else:
+        error.append('user type error, must be user ')
+        return JsonResponse({
+            'status':202,
+            'message':error
+        })
 
 
 def groupquit(request):
-    pass
-
-
+    error = []
+    id = request.POST.get('id')
+    user = models.user.objects.get(userSystem(request).getUsername())
+    group = models.group.objects.get(groupID=id)
+    group_check = models.check.objects.get(groupID=id)
+    if user.userType == 0 and group is not None:
+        member = group.member
+        index = member.find(user.username)
+        if index != -1:
+            member.replace(user.username,'')
+            if group_check.enable == True:
+                if user.username in group_check.members:
+                    members = group_check.members
+                    if members.find(user.username) != -1:
+                        members.replace(user.username,'')
+                        group_check.members = members
+                        group_check.save()
+            group.member = member
+            group.save()
+            return JsonResponse({'status':200,
+                                 'message':'success'
+                                 })
+    else :
+        error.append('user type error you must be user or group id error group not exist')
+        return JsonResponse({'status':202,
+                             'message':error
+                             })
 def groupupdate(request):
-    pass
-
-
+    error = []
+    id = request.POST.get('id')
+    group = models.group.objects.get(groupID=id)
+    user = models.user.objects.get(userSystem(request).getUsername())
+    if group is not None:
+        if user.userType == 1 and group.owner == user.username:
+            owner = request.POST.get('owner',group.owner)
+            member = request.POST.get('member',group.member)
+            name = request.POST.get('name',group.name)
+            group.member = member
+            group.owner = owner
+            group.name = name
+            group.save()
+            return JsonResponse({'status':200,
+                             'message':'success'
+                             })
+        else:
+            error.append('user type error,must be group monitor')
+            return JsonResponse({'status':403,
+                                 'message':error
+                                 })
+    else:
+        error.append('group not exist ')
+        return JsonResponse({'status':202,
+                             'message':error})
 def groupdelete(request):
-    pass
+    error = []
+    id = request.POST.get('id')
+    group = models.group.objects.get(groupID=id)
+    user = models.user.objects.get(userSystem(request).getUsername())
+    if group is not None:
+        if user.userType == 1 and group.owner == user.username:
+            group.delete()
+            return JsonResponse({'status':200,
+                                 'message':'success'})
+        else:
+            error.append('user type error ,must be group monitor')
+            return JsonResponse({
+                'status':403,
+                'message':error
+            })
+    else:
+        error.append('group not exist')
+        return JsonResponse({
+            'status':202,
+            'message':error
+        })
 
 
 def checkstatus(request):
