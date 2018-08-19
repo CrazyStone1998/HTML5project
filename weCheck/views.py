@@ -7,7 +7,6 @@ from HTML5project import settings
 from django.db.models import F,Q
 from weCheck import models
 from common.auth.userSystem import userSystem
-import face_recognition
 from common.decorator.ajax_post_only import ajax_post_only
 import os
 import time
