@@ -14,9 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path,include, re_path
+from weCheck.views import imgRescource
 
 urlpatterns = [
+
     path('admin/', admin.site.urls),
-    path('api/v1/',include('weCheck.urls',namespace='weCheck'))
+    re_path(r'^[^/]*\.jpg$', imgRescource, name='imgRescource'),
+    path('api/v1/', include('weCheck.urls', namespace='weCheck'))
 ]
+

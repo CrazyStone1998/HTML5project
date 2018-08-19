@@ -1,9 +1,9 @@
-#coding = utf-8
-#Redis
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 
 import redis
-import datetime
 import hashlib
+from datetime import datetime
 from weCheck import models
 from django.contrib.auth.hashers import check_password
 
@@ -22,13 +22,28 @@ class userSystem(object):
         self.token = None
 
     def authentication(self,username,password):
+        '''
+        用户 登陆 认 证
+        :param username:
+        :param password:
+        :return:
+        '''
+
         error = []
-        userlogin = models.user.objects.get(username=username)
-        if userlogin.exists():
+        # 获取登陆对象
+        try:
+            userlogin = models.user.objects.get(username=username)
+        # 用户对象 不存在
+        except Exception as e:
+            error.append('user matching query does not exist.')
 
+        if userlogin is not None:
+            # 设置 self 中维护的username，设置缓存时需要
+            self.username = username
+            # 检测 密码
             if check_password(password, userlogin.passwd):
-
-                user = self.setCookieAndSession()
+                # 设置 缓存
+                self.setCookieAndSession()
 
                 return error
 
@@ -39,6 +54,31 @@ class userSystem(object):
 
         return error
 
+    def getUsername(self):
+        '''
+        获取用户 username
+        :return:
+        '''
+        self.sessionID = self.request.session.get('sessionID')
+
+        if re.exists('sessionID_%s' % self.sessionID):
+            return re.hget('sessionID_%s' % self.sessionID, 'username').decode()
+
+        else:
+            return None
+
+    def delCache(self):
+        '''
+        清楚 缓存 session登陆信息
+        :return:
+        '''
+        if self.request.session.has_key('sessionID') and self.request.session.has_key('token'):
+            sessionID = self.request.session.get('sessionID')
+
+            if re.exists('sessionID_%s' % sessionID):
+                re.delete('sessionID_%s' % sessionID)
+            return True
+        return False
     def testCookie(self):
         '''
         在login 中设置 request.session.set_test_cookie()
@@ -58,13 +98,15 @@ class userSystem(object):
             没有 就说明用户没有登陆
         :return:
         '''
-        self.sessionID = self.request.COOKIES.get('sessionID')
-        self.token = self.request.COOKIES.get('token')
-        if re.exists(self.sessionID):
-            if re.exists('sessionID_%s' %self.sessionID):
-                map = re.hmget('sessionID_%s' %self.sessionID)
-                if map.get('token') == self.token:
-                    return map
+        self.sessionID = self.request.session.get('sessionID')
+        self.token = self.request.session.get('token')
+
+        if re.exists('sessionID_%s' % self.sessionID):
+            token_redis = re.hget('sessionID_%s' % self.sessionID,'token').decode()
+            username_redis = re.hget('sessionID_%s' % self.sessionID,'username').decode()
+
+            if token_redis == self.token:
+                return username_redis
         return None
 
     def setCookieAndSession(self):
@@ -73,25 +115,26 @@ class userSystem(object):
         :return:
         '''
 
-        self.sessionID = self.request.COOKIES.get('sessionID')
+        self.sessionID = self.request.session.get('sessionID')
         if not self.sessionID:
-            #set cookie
-
-            hash = hashlib.md5()
-            hash.update(datetime.datetime.now())
-            token = hashlib.md5()
-            token.update(datetime.datetime.now())
-            hashID =hash.hexdigest()
+            # set cookie
+            # md5 加密 随机生成
+            hash = hashlib.sha256(self.username.encode("utf8"))
+            token = hashlib.sha256((self.username.encode("utf8")))
+            hashID = hash.hexdigest()
             tokenID = token.hexdigest()
 
-            self.response.set_cookie('sessionID',hashID)
-            self.response.set_cookie('token',tokenID)
+            self.request.session['sessionID'] = hashID
+            self.request.session['token'] = tokenID
             self.sessionID = hashID
             self.token = tokenID
 
-        if not re.exists('sessionID_%s' %self.sessionID):
-            #set session
-            re.hset('sessionID_%s' %self.sessionID,'username',self.username,'token',self.token)
+        # 判断缓存中是否存在该 sessionID
+        if not re.exists('sessionID_%s' % self.sessionID):
+
+            # set session
+            re.hmset('sessionID_%s' % self.sessionID, {'username': self.username, 'token': self.token})
+
         return True
 
 

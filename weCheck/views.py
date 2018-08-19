@@ -1,39 +1,29 @@
-from django.contrib.auth import logout
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from HTML5project import settings
 from django.db.models import F,Q
 from weCheck import models
 from common.auth.userSystem import userSystem
-
-from django.http import  HttpResponse
+import face_recognition
+from common.decorator.ajax_post_only import ajax_post_only
 import os
 import time
 import datetime
-import face_recognition
+import string,random
 
-
-
-def ajax_post_only(func):
+def imgRescource(request):
     '''
-    装饰器
-    过滤掉非ajax post请求
-
-    :param func:
+    # 获取用户 大脸照
+    :param request:
     :return:
     '''
-    def wrapper(request,*args,**kwargs):
-        error = []
-        if request.method == 'POST':
-            return func(request,*args,**kwargs)
-        else:
-            error.append('request.method is not POST')
-            return JsonResponse({
-                'status':202,
-                'message':error,
-            })
-    return wrapper
-
+    path = settings.STATIC_ROOT+'/weCheck/img/'+request.path
+    with open(path,'rb') as f:
+        img = f.read()
+    return HttpResponse(img, content_type='image/jpg')
 
 @ajax_post_only
 def login(request):
@@ -43,16 +33,16 @@ def login(request):
     :return:
     '''
 
-    #获取用户 账户 和 密码
+    # 获取用户 账户 和 密码
     username = request.POST.get('username')
     password = request.POST.get('password')
-    #获取user对象
-    user =  userSystem(request)
-    #user登陆 认证
+    # 获取user对象
+    user = userSystem(request)
+    # user登陆 认证
     error = user.authentication(username=username,password=password)
-    #error为空 则登陆成功
-    #error不为空 则登陆不成功
-    if error:
+    # error为空 则登陆成功
+    # error不为空 则登陆不成功
+    if not error:
         return JsonResponse({
             'status':200,
             'message':'OK',
@@ -63,16 +53,18 @@ def login(request):
                             'message':error
                                         })
 
-
-
+@ajax_post_only
 def logout(request):
     '''
     账号 登出
     :param request:
     :return:
     '''
-    #清理 session
-    logout(request)
+    # 清理缓存
+    user = userSystem(request)
+    user.delCache()
+    # 清理 session
+    request.session.flush()
 
     return JsonResponse({
         'status': 200,
@@ -82,21 +74,21 @@ def logout(request):
 
 @ajax_post_only
 def register(request):
-    #错误信息列表
+    # 错误信息列表
     error = []
-    #后台获取并判断用户名和密码 是否为空
+    # 后台获取并判断用户名和密码 是否为空
     username = request.POST.get('username')
     passwd = request.POST.get('password')
     if username is None or passwd is None:
         error.append('The username&passwd cannot be empty')
-        #获取并判断 用户名是否存在
+        # 获取并判断 用户名是否存在
     elif not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():
 
         passwd   = make_password(passwd)
         name     = request.POST.get('name')
         img      = request.FILES.get('profile')
         userType = request.POST.get('userType')
-        profile  = 'weCheck/'+username+'.jpg'
+        profile  = settings.ICON_URL+''+username+'.jpg'
         # 将 用户 大脸照 写入 本地文件中
         imgPath  = os.path.join(settings.STATIC_ROOT,'weCheck','img',username+'.jpg')
         # 判断用户 大脸照 是否存在 若存在 重写
@@ -105,9 +97,9 @@ def register(request):
         with open(imgPath,'wb+') as f:
             for chunk in img.chunks():
                 f.write(chunk)
-        #调用 model类的 新建对象方法 存储用户对象
+        # 调用 model类的 新建对象方法 存储用户对象
         models.user.userObject(username,passwd,name,profile,userType,)
-        #返回 json
+        # 返回 json
         return JsonResponse({
                              'status':200,
                              'message':'OK'
@@ -120,71 +112,364 @@ def register(request):
         })
 
 
-def user(request):
+def user_splitter(request,GET=None,POST=None):
+    '''
+    获取用户信息 分流器
+    根据 request.method 分配方法
+    GET:view.userGET
+    POST:view.userPOST
+    :param request:
+    :return:
+    '''
+    # 错误信息列表
     error = []
-    if request.method == 'POST':
-        user = models.user.objects.filter(username=request.session.get('username'))
-        user.username = request.POST.get('username',user.username)
-        user.name = request.POST.get('name',user.name)
-        img = request.FILES.get('profile')
-        if img:
-            with open(os.path.join(settings.STATIC_ROOT, 'weCheck/img' + user.username + '.jpg'), 'wb') as f:
-                f.write(img)
-            user.profile = settings.STATIC_URL + 'weCheck/' + user.username + '.jpg'
-        user.save()
+    if request.method == 'GET' and GET is not None:
+        return GET(request)
+    elif request.method == 'POST' and POST is not None:
+        return POST(request)
+    else:
+        error.append('request.method is WRONG')
+
+
+def userGET(request):
+    '''
+    显示用户信息
+    :param request:
+    :return:
+    '''
+    # 错误信息列表
+    error = []
+    assert request.method == 'GET'
+    # 获取用户对象
+    try:
+        user = models.user.objects.get(username=userSystem(request).getUsername())
+    except Exception as e:
+        # 处理异常
+        error.append('user is not exist')
         return JsonResponse({
-            'status':200,
-            'message':'success'
+            'status': 202,
+            'message': error
+        })
+    if user is not None:
+
+        return JsonResponse({
+
+            'status': 200,
+            'message': 'success',
+            'data': {
+                'username': user.username,
+                'profile': user.profile,
+                'name': user.name
+
+            }
+        })
+    else:
+        error.append('user is not exist')
+        return JsonResponse({
+            'status': 202,
+            'message': error
         })
 
 
-    elif request.method == 'GET':
-        user = models.user.objects.filter(username=request.session.get('username'))
-        if user is not None:
-            username = user.username
-            profile = user.profile
-            name = user.name
-            return JsonResponse({
-                'status':200,
-                'message':'success',
-                'data':{
-                    'username':username,
-                    'profile':profile,
-                    'name':name
-                }
+def userPOST(request):
+    '''
+    修改用户信息
+    :param request:
+    :return:
+    '''
+    # 错误信息列表
+    error = []
+    assert request.method == 'POST'
+
+    user = models.user.objects.get(username=userSystem(request).getUsername())
+
+    user.name = request.POST.get('name',user.name)
+
+    img = request.FILES.get('profile')
+    if img:
+        # 修改 大脸照
+        user.profile = settings.ICON_URL + '' + user.username + '.jpg'
+        # 将 用户 大脸照 写入 本地文件中
+        imgPath = os.path.join(settings.STATIC_ROOT, 'weCheck', 'img', user.username + '.jpg')
+        # 判断用户 大脸照 是否存在 若存在 重写
+        if os.path.exists(imgPath):
+            os.remove(imgPath)
+        with open(imgPath, 'wb+') as f:
+            for chunk in img.chunks():
+                f.write(chunk)
+    # 保存 修改
+    user.save()
+
+    return JsonResponse({
+        'status':200,
+        'message':'success'
+    })
+
+
+
+def group(request):
+    error = []
+    id = request.GET.get('id')
+    group = models.group.objects.get(groupID=id)
+    user = models.user.objects.get(username=userSystem(request).getUsername())
+    userContain =models.group.objects.filter(member__contains=user.username)
+    if group is not None:
+        groupID = group.groupID
+        name = group.name
+        owner = group.owner
+        member = group.member
+        role = 0
+        if user.username == owner:
+            role = 2
+            check = models.check.objects.get(groupID=groupID)
+            state = check.enable
+            return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'member': member,
+                                     'role': role
+                                 },
+                                 'state':state
+                                 })
+        elif userContain is not None:
+            role = 1
+            check = models.check.objects.get(groupID=groupID)
+            state = check.enable
+            if state == True:
+                checked = models.check.objects.filter(groupID=groupID,members__contains=user.username)
+                if checked is not None:
+                    checked = True
+                elif checked is None:
+                    checked =  False
+                return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'role': role
+                                 },
+                                 'state': state,
+                                 'checked':checked
+                                 })
+            elif state ==  False:
+                return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'role': role
+                                 },
+                                 'state': state
+                                 })
+        else:
+            return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'role': role
+                                 },
+                                 })
+    else:
+        error.append('group is not exist')
+        return JsonResponse({
+            'status':202,
+            'message':error
+        })
+
+
+
+def grouplist(request):
+    error = []
+    user = models.user.objects.get(username=userSystem(request).getUsername())
+    data = []
+    group_message = {}
+    if user is not None:
+        if user.userType == 1:
+            groups = models.group.objects.filter(owner=user.username)
+
+            for group in groups:
+                groupID = group.groupID
+                name = group.name
+                owner = group.owner
+                member = group.member
+                check = models.check.objects.get(groupID=groupID)
+                state = check.enable
+                group_message = {'id':groupID,'name':name,'owner':owner,'member':member,'state':state,'role':2}
+                data.append(group_message)
+            return     JsonResponse({'status':200,
+                                 'message':'success',
+                                 'data':data
+                                 })
+        else :
+            groups = models.group.objects.filter(member__contains=user.username)
+
+            for group in groups :
+                groupID = group.groupID
+                name = group.name
+                owner = group.owner
+
+                check = models.check.objects.get(groupID=groupID)
+                state = check.enable
+                if state == True:
+                    checked = models.check.objects.filter(groupID=groupID, members__contains=user.username)
+                    if checked is not None:
+                        checked = True
+                    elif checked is None:
+                        checked = False
+                    group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1,'checked':checked}
+                    data.append(group_message)
+                    return JsonResponse({'status':200,
+                                 'message':'success',
+                                 'data':data
+                                 })
+                else:
+                    group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1}
+                    data.append(group_message)
+                    return JsonResponse({'status':200,
+                                 'message':'success',
+                                 'data':data
+                                 })
+    else:
+        error.append("can\'t get the user ")
+        return JsonResponse({'status':202,
+                             'message':error,
+                             'data':group_message
+                             })
+
+
+
+#创建group
+def groupadd(request):
+    error = []
+    user = models.user.objects.get(username=userSystem(request).getUsername())
+    if user.userType == 1:
+        name = request.POST.get('name')
+        id = ''.join(random.sample(string.ascii_letters+string.digits,6))
+        #生成6位的随机口令由大写小写字母和数字随机组成，多达21亿多种结果,基本不能重复
+        newGroup,flag=models.group.objects.get_or_create(groupID=id,name=name,member='',owner=user.username,isDelete=False)
+        if newGroup is not None:
+            return JsonResponse({'status':200,
+                                 'message':'OK',
+                                 'data':id,
             })
         else:
-            error.append('user is not exist')
+            error.append('group id repeat,create group fault')
             return JsonResponse({
                 'status':202,
                 'message':error
             })
+    else:
+        error.append('user type error,must be monitor')
+        return JsonResponse({
+            'status':403,
+            'message':error
+        })
 
 
-def group(request):
-    pass
-
-def grouplist(request):
-    pass
-
-def groupadd(request):
-    pass
-
-
+#加入群组
 def groupjoin(request):
-    pass
+    error = []
+    user = models.user.objects.get(userSystem(request).getUsername())
+    if user.userType == 0:
+        id = request.POST.get('id')
+        group = models.group.objects.get(groupID=id)
+        group.member = group.member +" "+user.username
+        group.save()
+        return JsonResponse({
+            'status':200,
+            'message':'success'
+        })
+    else:
+        error.append('user type error, must be user ')
+        return JsonResponse({
+            'status':202,
+            'message':error
+        })
 
 
 def groupquit(request):
-    pass
-
-
+    error = []
+    id = request.POST.get('id')
+    user = models.user.objects.get(userSystem(request).getUsername())
+    group = models.group.objects.get(groupID=id)
+    group_check = models.check.objects.get(groupID=id)
+    if user.userType == 0 and group is not None:
+        member = group.member
+        index = member.find(user.username)
+        if index != -1:
+            member.replace(user.username,'')
+            if group_check.enable == True:
+                if user.username in group_check.members:
+                    members = group_check.members
+                    if members.find(user.username) != -1:
+                        members.replace(user.username,'')
+                        group_check.members = members
+                        group_check.save()
+            group.member = member
+            group.save()
+            return JsonResponse({'status':200,
+                                 'message':'success'
+                                 })
+    else :
+        error.append('user type error you must be user or group id error group not exist')
+        return JsonResponse({'status':202,
+                             'message':error
+                             })
 def groupupdate(request):
-    pass
-
-
+    error = []
+    id = request.POST.get('id')
+    group = models.group.objects.get(groupID=id)
+    user = models.user.objects.get(userSystem(request).getUsername())
+    if group is not None:
+        if user.userType == 1 and group.owner == user.username:
+            owner = request.POST.get('owner',group.owner)
+            member = request.POST.get('member',group.member)
+            name = request.POST.get('name',group.name)
+            group.member = member
+            group.owner = owner
+            group.name = name
+            group.save()
+            return JsonResponse({'status':200,
+                             'message':'success'
+                             })
+        else:
+            error.append('user type error,must be group monitor')
+            return JsonResponse({'status':403,
+                                 'message':error
+                                 })
+    else:
+        error.append('group not exist ')
+        return JsonResponse({'status':202,
+                             'message':error})
 def groupdelete(request):
-    pass
+    error = []
+    id = request.POST.get('id')
+    group = models.group.objects.get(groupID=id)
+    user = models.user.objects.get(userSystem(request).getUsername())
+    if group is not None:
+        if user.userType == 1 and group.owner == user.username:
+            group.delete()
+            return JsonResponse({'status':200,
+                                 'message':'success'})
+        else:
+            error.append('user type error ,must be group monitor')
+            return JsonResponse({
+                'status':403,
+                'message':error
+            })
+    else:
+        error.append('group not exist')
+        return JsonResponse({
+            'status':202,
+            'message':error
+        })
 
 
 def checkstatus(request):
