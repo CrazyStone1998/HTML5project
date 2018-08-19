@@ -1,5 +1,5 @@
-#coding = utf-8
-#Redis
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 
 import redis
 import hashlib
@@ -31,7 +31,12 @@ class userSystem(object):
 
         error = []
         # 获取登陆对象
-        userlogin = models.user.objects.get(username=username)
+        try:
+            userlogin = models.user.objects.get(username=username)
+        # 用户对象 不存在
+        except Exception as e:
+            error.append('user matching query does not exist.')
+
         if userlogin is not None:
             # 设置 self 中维护的username，设置缓存时需要
             self.username = username
@@ -114,8 +119,8 @@ class userSystem(object):
         if not self.sessionID:
             # set cookie
             # md5 加密 随机生成
-            hash = hashlib.md5()
-            token = hashlib.md5()
+            hash = hashlib.sha256(self.username.encode("utf8"))
+            token = hashlib.sha256((self.username.encode("utf8")))
             hashID = hash.hexdigest()
             tokenID = token.hexdigest()
 

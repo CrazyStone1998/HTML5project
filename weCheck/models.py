@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
 from django.db import models
 import time
 import datetime
@@ -5,7 +8,6 @@ import datetime
 # Create your models here.
 """
            用户表
-
 字段         类型        描述
 
 username   string      用户账号
@@ -18,7 +20,7 @@ userType   Integer     用户身份
 class user(models.Model):
 
     username  = models.CharField(max_length=30,unique=True,primary_key=True)
-    passwd    = models.CharField(max_length=100)
+    passwd    = models.CharField(max_length=1000)
     name      = models.CharField(max_length=10)
     profile   = models.CharField(max_length=100)
     userType  = models.IntegerField()
