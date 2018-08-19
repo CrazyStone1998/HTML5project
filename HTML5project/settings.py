@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wecheck',
         'USER': 'root',
-        'PASSWORD': 'Shijunyu',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'POST': '3306',
 

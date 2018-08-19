@@ -1,0 +1,422 @@
+Index: .idea/HTML5project.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/HTML5project.iml	(date 1534332307000)
++++ .idea/HTML5project.iml	(date 1534332171417)
+@@ -14,7 +14,7 @@
+   </component>
+   <component name="NewModuleRootManager">
+     <content url="file://$MODULE_DIR$" />
+-    <orderEntry type="jdk" jdkName="Python 3.6 (HTML5project)" jdkType="Python SDK" />
++    <orderEntry type="jdk" jdkName="Python 3.7 (envtest)" jdkType="Python SDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
+   </component>
+   <component name="TemplatesService">
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/workspace.xml	(date 1534332307000)
++++ .idea/workspace.xml	(date 1534381710706)
+@@ -2,7 +2,10 @@
+ <project version="4">
+   <component name="ChangeListManager">
+     <list default="true" id="e665c187-bab3-4b63-aa69-3eb7edb22c6c" name="Default" comment="">
++      <change beforePath="$PROJECT_DIR$/.idea/HTML5project.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/HTML5project.iml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/weCheck/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/weCheck/views.py" afterDir="false" />
+     </list>
+     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+     <option name="TRACKING_ENABLED" value="true" />
+@@ -36,8 +39,8 @@
+       <file leaf-file-name="settings.py" pinned="false" current-in-tab="false">
+         <entry file="file://$PROJECT_DIR$/HTML5project/settings.py">
+           <provider selected="true" editor-type-id="text-editor">
+-            <state relative-caret-position="1749">
+-              <caret line="53" column="13" selection-start-line="53" selection-start-column="13" selection-end-line="53" selection-end-column="13" />
++            <state relative-caret-position="1848">
++              <caret line="56" column="13" selection-start-line="56" selection-start-column="13" selection-end-line="56" selection-end-column="13" />
+             </state>
+           </provider>
+         </entry>
+@@ -54,8 +57,8 @@
+       <file leaf-file-name="models.py" pinned="false" current-in-tab="false">
+         <entry file="file://$PROJECT_DIR$/weCheck/models.py">
+           <provider selected="true" editor-type-id="text-editor">
+-            <state relative-caret-position="5379">
+-              <caret line="165" column="23" selection-start-line="165" selection-start-column="23" selection-end-line="165" selection-end-column="23" />
++            <state relative-caret-position="4422">
++              <caret line="134" column="10" selection-start-line="134" selection-start-column="4" selection-end-line="134" selection-end-column="10" />
+               <folding>
+                 <element signature="e#0#28#0" expanded="true" />
+               </folding>
+@@ -71,11 +74,8 @@
+       <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
+         <entry file="file://$PROJECT_DIR$/weCheck/views.py">
+           <provider selected="true" editor-type-id="text-editor">
+-            <state relative-caret-position="-318">
+-              <caret line="355" column="24" selection-start-line="355" selection-start-column="20" selection-end-line="355" selection-end-column="24" />
+-              <folding>
+-                <element signature="e#0#68#0" expanded="true" />
+-              </folding>
++            <state relative-caret-position="330">
++              <caret line="451" column="27" selection-start-line="451" selection-start-column="27" selection-end-line="451" selection-end-column="27" />
+             </state>
+           </provider>
+         </entry>
+@@ -120,9 +120,9 @@
+     <packageJsonPaths />
+   </component>
+   <component name="ProjectFrameBounds" extendedState="6">
+-    <option name="x" value="31" />
+-    <option name="y" value="45" />
+-    <option name="width" value="1378" />
++    <option name="x" value="-263" />
++    <option name="y" value="16" />
++    <option name="width" value="1244" />
+     <option name="height" value="735" />
+   </component>
+   <component name="ProjectInspectionProfilesVisibleTreeState">
+@@ -146,7 +146,6 @@
+       <foldersAlwaysOnTop value="true" />
+     </navigator>
+     <panes>
+-      <pane id="Scope" />
+       <pane id="ProjectPane">
+         <subPane>
+           <expand>
+@@ -168,6 +167,7 @@
+           <select />
+         </subPane>
+       </pane>
++      <pane id="Scope" />
+     </panes>
+   </component>
+   <component name="PropertiesComponent">
+@@ -177,6 +177,144 @@
+     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+     <property name="settings.editor.selected.configurable" value="settings.github" />
+   </component>
++  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
++    <UpdatedFiles>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Updated from server" />
++        <option name="myStatusName" value="Changed on server" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="CHANGED_ON_SERVER" />
++        <FILE-GROUP>
++          <option name="myUpdateName" value="Updated" />
++          <option name="myStatusName" value="Changed" />
++          <option name="mySupportsDeletion" value="false" />
++          <option name="myCanBeAbsent" value="false" />
++          <option name="myId" value="UPDATED" />
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/HTML5project.iml</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/misc.xml</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/workspace.xml</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/HTML5project/__pycache__/settings.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/HTML5project/settings.py</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/manage.py</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/__pycache__/views.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/models.py</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/views.py</PATH>
++        </FILE-GROUP>
++        <FILE-GROUP>
++          <option name="myUpdateName" value="Created" />
++          <option name="myStatusName" value="Created" />
++          <option name="mySupportsDeletion" value="false" />
++          <option name="myCanBeAbsent" value="false" />
++          <option name="myId" value="CREATED" />
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/HTML5project/__pycache__/wsgi.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/MiddleWare/__init__.py</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/MiddleWare/__pycache__/__init__.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/MiddleWare/__pycache__/auth.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/MiddleWare/auth.py</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/common/auth/__init__.py</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/common/auth/__pycache__/__init__.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/common/auth/__pycache__/userSystem.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/common/auth/userSystem.py</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/run.log</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/static/weCheck/img/Stone.jpg</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/uwsgi.ini</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/__pycache__/admin.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/__pycache__/models.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/migrations/0001_initial.py</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/migrations/0002_auto_20180815_1616.py</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/migrations/__pycache__/0001_initial.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/migrations/__pycache__/0002_auto_20180815_1616.cpython-36.pyc</PATH>
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/weCheck/migrations/__pycache__/__init__.cpython-36.pyc</PATH>
++        </FILE-GROUP>
++        <FILE-GROUP>
++          <option name="myUpdateName" value="Deleted" />
++          <option name="myStatusName" value="Deleted" />
++          <option name="mySupportsDeletion" value="false" />
++          <option name="myCanBeAbsent" value="true" />
++          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
++        </FILE-GROUP>
++        <FILE-GROUP>
++          <option name="myUpdateName" value="Restored" />
++          <option name="myStatusName" value="Will be restored" />
++          <option name="mySupportsDeletion" value="false" />
++          <option name="myCanBeAbsent" value="false" />
++          <option name="myId" value="RESTORED" />
++        </FILE-GROUP>
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Modified" />
++        <option name="myStatusName" value="Modified" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MODIFIED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Skipped" />
++        <option name="myStatusName" value="Skipped" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="SKIPPED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Merged with conflicts" />
++        <option name="myStatusName" value="Will be merged with conflicts" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MERGED_WITH_CONFLICTS" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Merged with tree conflicts" />
++        <option name="myStatusName" value="Merged with tree conflicts" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Merged with property conflicts" />
++        <option name="myStatusName" value="Will be merged with property conflicts" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Merged" />
++        <option name="myStatusName" value="Will be merged" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MERGED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Not in repository" />
++        <option name="myStatusName" value="Not in repository" />
++        <option name="mySupportsDeletion" value="true" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="UNKNOWN" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Locally added" />
++        <option name="myStatusName" value="Locally added" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="LOCALLY_ADDED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Locally removed" />
++        <option name="myStatusName" value="Locally removed" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="LOCALLY_REMOVED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Switched" />
++        <option name="myStatusName" value="Switched" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="SWITCHED" />
++      </FILE-GROUP>
++    </UpdatedFiles>
++  </component>
+   <component name="RunDashboard">
+     <option name="ruleStates">
+       <list>
+@@ -264,21 +402,22 @@
+   </component>
+   <component name="ToolWindowManager">
+     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
++    <editor active="true" />
+     <layout>
+       <window_info anchor="bottom" id="TODO" order="6" />
+-      <window_info active="true" anchor="bottom" id="Event Log" order="7" sideWeight="0.5014641" side_tool="true" visible="true" weight="0.0851735" />
++      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.50073206" side_tool="true" weight="0.329653" />
+       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
+-      <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.49853587" visible="true" weight="0.0851735" />
+-      <window_info anchor="bottom" id="Python Console" order="7" />
+       <window_info anchor="bottom" id="Run" order="2" />
++      <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.49926794" visible="true" weight="0.1214511" />
++      <window_info anchor="bottom" id="Python Console" order="7" />
+       <window_info anchor="bottom" id="Terminal" order="7" />
+       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.0966325" />
+       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+       <window_info anchor="right" id="Database" order="3" />
+       <window_info anchor="right" id="SciView" order="3" />
+       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+-      <window_info id="Favorites" order="2" side_tool="true" />
+       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
++      <window_info id="Favorites" order="2" side_tool="true" />
+       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+@@ -348,9 +487,6 @@
+       <provider selected="true" editor-type-id="text-editor">
+         <state relative-caret-position="66">
+           <caret line="10" selection-start-line="10" selection-end-line="10" />
+-          <folding>
+-            <element signature="e#0#68#0" expanded="true" />
+-          </folding>
+         </state>
+       </provider>
+     </entry>
+@@ -451,9 +587,6 @@
+       <provider selected="true" editor-type-id="text-editor">
+         <state relative-caret-position="3531">
+           <caret line="107" lean-forward="true" selection-start-line="107" selection-end-line="107" />
+-          <folding>
+-            <element signature="e#0#68#0" expanded="true" />
+-          </folding>
+         </state>
+       </provider>
+     </entry>
+@@ -522,9 +655,6 @@
+       <provider selected="true" editor-type-id="text-editor">
+         <state relative-caret-position="42">
+           <caret line="10" selection-start-line="10" selection-end-line="10" />
+-          <folding>
+-            <element signature="e#0#68#0" expanded="true" />
+-          </folding>
+         </state>
+       </provider>
+     </entry>
+@@ -614,8 +744,8 @@
+     </entry>
+     <entry file="file://$PROJECT_DIR$/HTML5project/settings.py">
+       <provider selected="true" editor-type-id="text-editor">
+-        <state relative-caret-position="1749">
+-          <caret line="53" column="13" selection-start-line="53" selection-start-column="13" selection-end-line="53" selection-end-column="13" />
++        <state relative-caret-position="1848">
++          <caret line="56" column="13" selection-start-line="56" selection-start-column="13" selection-end-line="56" selection-end-column="13" />
+         </state>
+       </provider>
+     </entry>
+@@ -624,8 +754,8 @@
+     </entry>
+     <entry file="file://$PROJECT_DIR$/weCheck/models.py">
+       <provider selected="true" editor-type-id="text-editor">
+-        <state relative-caret-position="5379">
+-          <caret line="165" column="23" selection-start-line="165" selection-start-column="23" selection-end-line="165" selection-end-column="23" />
++        <state relative-caret-position="4422">
++          <caret line="134" column="10" selection-start-line="134" selection-start-column="4" selection-end-line="134" selection-end-column="10" />
+           <folding>
+             <element signature="e#0#28#0" expanded="true" />
+           </folding>
+@@ -634,11 +764,8 @@
+     </entry>
+     <entry file="file://$PROJECT_DIR$/weCheck/views.py">
+       <provider selected="true" editor-type-id="text-editor">
+-        <state relative-caret-position="-318">
+-          <caret line="355" column="24" selection-start-line="355" selection-start-column="20" selection-end-line="355" selection-end-column="24" />
+-          <folding>
+-            <element signature="e#0#68#0" expanded="true" />
+-          </folding>
++        <state relative-caret-position="330">
++          <caret line="451" column="27" selection-start-line="451" selection-start-column="27" selection-end-line="451" selection-end-column="27" />
+         </state>
+       </provider>
+     </entry>
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/misc.xml	(date 1534332307000)
++++ .idea/misc.xml	(date 1534332171464)
+@@ -3,5 +3,5 @@
+   <component name="JavaScriptSettings">
+     <option name="languageLevel" value="ES6" />
+   </component>
+-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.6 (HTML5project)" project-jdk-type="Python SDK" />
++  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7 (envtest)" project-jdk-type="Python SDK" />
+ </project>
+\ No newline at end of file
+Index: weCheck/views.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- weCheck/views.py	(date 1534332307000)
++++ weCheck/views.py	(date 1534332577605)
+@@ -183,7 +183,7 @@
+ 
+ 
+ def checkstatus(request):
+-    user = models.user.objects.filter(username=request.session.get('username'))
++    user = models.user.objects.get(username=userSystem(request).getUsername())
+     if user is not None:
+         username=user.username
+         nowdate=datetime.date.today()
+@@ -256,7 +256,7 @@
+ @ajax_post_only
+ def checkcheck(request):
+     error=[]
+-    user = models.user.objects.filter(username=request.session.get('username'))
++    user = models.user.objects.get(username=userSystem(request).getUsername())
+     username=user.username
+     groupid=request.POST.get('id')
+     group=models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)
+@@ -289,7 +289,7 @@
+ @ajax_post_only
+ def checkenable(request):
+     error=[]
+-    user = models.user.objects.filter(username=request.session.get('username'))
++    user = models.user.objects.get(username=userSystem(request).getUsername())
+     ownerID=user.username
+     groupid = request.POST.get('id')
+     group=models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)#查看该用户是否为该群组的所有者
+@@ -314,7 +314,7 @@
+ #结束即时签到
+ def checkdisable(request):
+     error = []
+-    user = models.user.objects.filter(username=request.session.get('username'))
++    user = models.user.objects.get(username=userSystem(request).getUsername())
+     ownerID = user.username
+     groupid = request.POST.get('id')
+     group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)
+@@ -346,7 +346,7 @@
+ 
+ def schedule(request):
+     error=[]
+-    user = models.user.objects.filter(username=request.session.get('username'))
++    user = models.user.objects.get(username=userSystem(request).getUsername())
+     username=user.username#获取该用户的用户名称
+     groupid = request.POST.get('id')
+     group = models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)#获取该群组，并且检查是否包含该用户
+@@ -378,7 +378,7 @@
+ @ajax_post_only
+ def scheduleadd(request):
+     error=[]
+-    user = models.user.objects.filter(username=request.session.get('username'))
++    user = models.user.objects.get(username=userSystem(request).getUsername())
+ 
+     username=user.useranme
+     groupid = request.POST.get('id')
+@@ -488,7 +488,7 @@
+ @ajax_post_only
+ def scheduleupdate(request):
+     error = []
+-    user = models.user.objects.filter(username=request.session.get('username'))
++    user = models.user.objects.get(username=userSystem(request).getUsername())
+     username = user.useranme
+     scheduleId= request.POST.get('scheduleId')
+     check_plan = models.checkPlan.objects.get(planID=scheduleId)

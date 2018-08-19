@@ -4,10 +4,15 @@ from django.http import JsonResponse
 from HTML5project import settings
 from django.db.models import F,Q
 from weCheck import models
-from common.auth import userSystem
+from common.auth.userSystem import userSystem
+
+from django.http import  HttpResponse
 import os
 import time
 import datetime
+import face_recognition
+
+
 
 def ajax_post_only(func):
     '''
@@ -42,7 +47,7 @@ def login(request):
     username = request.POST.get('username')
     password = request.POST.get('password')
     #获取user对象
-    user = userSystem(request)
+    user =  userSystem(request)
     #user登陆 认证
     error = user.authentication(username=username,password=password)
     #error为空 则登陆成功
@@ -183,7 +188,7 @@ def groupdelete(request):
 
 
 def checkstatus(request):
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get(username= userSystem(request).getUsername())
     if user is not None:
         username=user.username
         nowdate=datetime.date.today()
@@ -256,7 +261,7 @@ def checkstatus(request):
 @ajax_post_only
 def checkcheck(request):
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get(username=userSystem(request).getUserObject())
     username=user.username
     groupid=request.POST.get('id')
     group=models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)
@@ -626,3 +631,12 @@ def scheduledelete(request):
             "status":202,
             "message":error
         })
+
+def index(request):
+    baby1_img=face_recognition.load_image_file("baby1.jpg")
+    baby2_img=face_recognition.load_image_file("baby2.jpg")
+
+    baby1_encoding=face_recognition.face_encodings(baby1_img)[0]
+    baby2_encoding=face_recognition.face_encodings(baby2_img)[0]
+    result=face_recognition.compare_faces(baby1_encoding,baby2_encoding)
+    return HttpResponse(result)

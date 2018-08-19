@@ -4,7 +4,7 @@ from weCheck import views
 
 app_name = 'weCheck'
 urlpatterns = [
-
+    path('index/',           views.index,          name='index'),
     path('login/',           views.login,          name='login'),           #access: all
     path('logout/',          views.logout,         name='logout'),          #access: all
     path('register/',        views.register,       name='register'),        #access: all
@@ -24,7 +24,5 @@ urlpatterns = [
     path('schedule/add/',    views.scheduleadd,    name='scheduleadd'),     #access: manager
     path('schedule/update/', views.scheduleupdate, name='scheduleupdate'),  #access: manager
     path('schedule/delete/', views.scheduledelete, name='scheduledelete'),  #access: manager
-
-
 
 ]
