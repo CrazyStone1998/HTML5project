@@ -211,7 +211,7 @@ def group(request):
     id = request.GET.get('id')
     group = models.group.objects.get(groupID=id)
     user = models.user.objects.get(username=userSystem(request).getUsername())
-    userContain =models.group.objects.filter(member__contains=user.username)
+
     if group is not None:
         groupID = group.groupID
         name = group.name
@@ -221,10 +221,11 @@ def group(request):
         if user.username == owner:
             role = 2
             check = models.check.objects.get(groupID=groupID)
-            state = check.enable
-            return JsonResponse({'status': 200,
-                                 'message': 'success',
-                                 'data': {
+            if check is not None:
+                state = check.enable
+                return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': {
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
@@ -233,15 +234,16 @@ def group(request):
                                  },
                                  'state':state
                                  })
-        elif userContain is not None:
+
+        elif user.username in group.member:
             role = 1
             check = models.check.objects.get(groupID=groupID)
             state = check.enable
             if state == True:
-                checked = models.check.objects.filter(groupID=groupID,members__contains=user.username)
-                if checked is not None:
+
+                if user.username in check.members:
                     checked = True
-                elif checked is None:
+                else:
                     checked =  False
                 return JsonResponse({'status': 200,
                                  'message': 'success',
@@ -317,10 +319,9 @@ def grouplist(request):
                 check = models.check.objects.get(groupID=groupID)
                 state = check.enable
                 if state == True:
-                    checked = models.check.objects.filter(groupID=groupID, members__contains=user.username)
-                    if checked is not None:
+                    if user.username in check.members:
                         checked = True
-                    elif checked is None:
+                    else:
                         checked = False
                     group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1,'checked':checked}
                     data.append(group_message)
@@ -336,7 +337,7 @@ def grouplist(request):
                                  'data':data
                                  })
     else:
-        error.append("can\'t get the user ")
+        error.append("user not exist ")
         return JsonResponse({'status':202,
                              'message':error,
                              'data':group_message
