@@ -140,15 +140,8 @@ def userGET(request):
     error = []
     assert request.method == 'GET'
     # 获取用户对象
-    try:
-        user = models.user.objects.get(username=userSystem(request).getUsername())
-    except Exception as e:
-        # 处理异常
-        error.append('user is not exist')
-        return JsonResponse({
-            'status': 202,
-            'message': error
-        })
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+
     if user is not None:
 
         return JsonResponse({
@@ -180,7 +173,7 @@ def userPOST(request):
     error = []
     assert request.method == 'POST'
 
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
 
     user.name = request.POST.get('name',user.name)
 
@@ -209,8 +202,8 @@ def userPOST(request):
 def group(request):
     error = []
     id = request.GET.get('id')
-    group = models.group.objects.get(groupID=id)
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    group = models.group.objects.get_or_none(groupID=id)
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
 
     if group is not None:
         groupID = group.groupID
@@ -220,7 +213,7 @@ def group(request):
         role = 0
         if user.username == owner:
             role = 2
-            check = models.check.objects.get(groupID=groupID)
+            check = models.check.objects.get_or_none(groupID=groupID)
             if check is not None:
                 state = check.enable
                 return JsonResponse({'status': 200,
@@ -237,7 +230,7 @@ def group(request):
 
         elif user.username in group.member:
             role = 1
-            check = models.check.objects.get(groupID=groupID)
+            check = models.check.objects.get_or_none(groupID=groupID)
             state = check.enable
             if state == True:
 
@@ -288,7 +281,7 @@ def group(request):
 
 def grouplist(request):
     error = []
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     data = []
     group_message = {}
     if user is not None:
@@ -300,7 +293,7 @@ def grouplist(request):
                 name = group.name
                 owner = group.owner
                 member = group.member
-                check = models.check.objects.get(groupID=groupID)
+                check = models.check.objects.get_or_none(groupID=groupID)
                 state = check.enable
                 group_message = {'id':groupID,'name':name,'owner':owner,'member':member,'state':state,'role':2}
                 data.append(group_message)
@@ -316,7 +309,7 @@ def grouplist(request):
                 name = group.name
                 owner = group.owner
 
-                check = models.check.objects.get(groupID=groupID)
+                check = models.check.objects.get_or_none(groupID=groupID)
                 state = check.enable
                 if state == True:
                     if user.username in check.members:
@@ -348,7 +341,7 @@ def grouplist(request):
 #创建group
 def groupadd(request):
     error = []
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     if user.userType == 1:
         name = request.POST.get('name')
         id = ''.join(random.sample(string.ascii_letters+string.digits,6))
@@ -376,10 +369,10 @@ def groupadd(request):
 #加入群组
 def groupjoin(request):
     error = []
-    user = models.user.objects.get(userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(userSystem(request).getUsername())
     if user.userType == 0:
         id = request.POST.get('id')
-        group = models.group.objects.get(groupID=id)
+        group = models.group.objects.get_or_none(groupID=id)
         group.member = group.member +" "+user.username
         group.save()
         return JsonResponse({
@@ -397,9 +390,9 @@ def groupjoin(request):
 def groupquit(request):
     error = []
     id = request.POST.get('id')
-    user = models.user.objects.get(userSystem(request).getUsername())
-    group = models.group.objects.get(groupID=id)
-    group_check = models.check.objects.get(groupID=id)
+    user = models.user.objects.get_or_none(userSystem(request).getUsername())
+    group = models.group.objects.get_or_none(groupID=id)
+    group_check = models.check.objects.get_or_none(groupID=id)
     if user.userType == 0 and group is not None:
         member = group.member
         index = member.find(user.username)
@@ -425,8 +418,8 @@ def groupquit(request):
 def groupupdate(request):
     error = []
     id = request.POST.get('id')
-    group = models.group.objects.get(groupID=id)
-    user = models.user.objects.get(userSystem(request).getUsername())
+    group = models.group.objects.get_or_none(groupID=id)
+    user = models.user.objects.get_or_none(userSystem(request).getUsername())
     if group is not None:
         if user.userType == 1 and group.owner == user.username:
             owner = request.POST.get('owner',group.owner)
@@ -451,8 +444,8 @@ def groupupdate(request):
 def groupdelete(request):
     error = []
     id = request.POST.get('id')
-    group = models.group.objects.get(groupID=id)
-    user = models.user.objects.get(userSystem(request).getUsername())
+    group = models.group.objects.get_or_none(groupID=id)
+    user = models.user.objects.get_or_none(userSystem(request).getUsername())
     if group is not None:
         if user.userType == 1 and group.owner == user.username:
             group.delete()
@@ -473,7 +466,7 @@ def groupdelete(request):
 
 
 def checkstatus(request):
-    user = models.user.objects.get(username= userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username= userSystem(request).getUsername())
     if user is not None:
         username=user.username
         nowdate=datetime.date.today()
@@ -546,11 +539,11 @@ def checkstatus(request):
 @ajax_post_only
 def checkcheck(request):
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUserObject())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUserObject())
     username=user.username
     groupid=request.POST.get('id')
     group=models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)
-    check=models.check.objects.get(groupID=group)
+    check=models.check.objects.get_or_none(groupID=group)
     if group is not None:
         if check.enable is False:
             error.append("The group is not checking")
@@ -579,7 +572,7 @@ def checkcheck(request):
 @ajax_post_only
 def checkenable(request):
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     ownerID=user.username
     groupid = request.POST.get('id')
     group=models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)#查看该用户是否为该群组的所有者
@@ -604,7 +597,7 @@ def checkenable(request):
 #结束即时签到
 def checkdisable(request):
     error = []
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     ownerID = user.username
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)
@@ -636,7 +629,7 @@ def checkdisable(request):
 
 def schedule(request):
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username#获取该用户的用户名称
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)#获取该群组，并且检查是否包含该用户
@@ -668,7 +661,7 @@ def schedule(request):
 @ajax_post_only
 def scheduleadd(request):
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
 
     username=user.useranme
     groupid = request.POST.get('id')
@@ -778,10 +771,10 @@ def scheduleadd(request):
 @ajax_post_only
 def scheduleupdate(request):
     error = []
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username = user.useranme
     scheduleId= request.POST.get('scheduleId')
-    check_plan = models.checkPlan.objects.get(planID=scheduleId)
+    check_plan = models.checkPlan.objects.get_or_none(planID=scheduleId)
     groupId=request.POST.get('id',check_plan.group_ID)
     startUpTime = request.POST.get('startUpTime', check_plan.startUpTime)
     duration = request.POST.get('duration', check_plan.duration)
@@ -916,12 +909,3 @@ def scheduledelete(request):
             "status":202,
             "message":error
         })
-
-def index(request):
-    baby1_img=face_recognition.load_image_file("baby1.jpg")
-    baby2_img=face_recognition.load_image_file("baby2.jpg")
-
-    baby1_encoding=face_recognition.face_encodings(baby1_img)[0]
-    baby2_encoding=face_recognition.face_encodings(baby2_img)[0]
-    result=face_recognition.compare_faces(baby1_encoding,baby2_encoding)
-    return HttpResponse(result)

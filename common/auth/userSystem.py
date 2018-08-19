@@ -31,29 +31,24 @@ class userSystem(object):
 
         error = []
         # 获取登陆对象
-        try:
-            userlogin = models.user.objects.get(username=username)
 
-            if userlogin is not None:
-                # 设置 self 中维护的username，设置缓存时需要
-                self.username = username
-                # 检测 密码
-                if check_password(password, userlogin.passwd):
-                    # 设置 缓存
-                    self.setCookieAndSession()
+        userlogin = models.user.objects.get_or_none(username=username)
 
-                    return error
+        if userlogin is not None:
+            # 设置 self 中维护的username，设置缓存时需要
+            self.username = username
+            # 检测 密码
+            if check_password(password, userlogin.passwd):
+                # 设置 缓存
+                self.setCookieAndSession()
 
-                else:
-                    error.append('The password is not right')
+                return error
+
             else:
-                error.append('The user is not exist')
-
-        # 用户对象 不存在
-        except Exception as e:
-
+                error.append('The password is not right')
+        else:
+            # 用户对象 不存在
             error.append('user matching query does not exist.')
-
 
         return error
 

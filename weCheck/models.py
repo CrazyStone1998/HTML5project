@@ -1,11 +1,26 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 import time
 import datetime
 
 # Create your models here.
+
+class wecheckManager(models.Manager):
+    def get_or_none(self,**kwargs):
+        '''
+        定义 get_or_none
+        该方法 当get对象不存在时返回none
+        :param kwargs:
+        :return:
+        '''
+        try:
+            return self.get(**kwargs)
+        except ObjectDoesNotExist:
+            return None
+
+
 """
            用户表
 字段         类型        描述
@@ -25,6 +40,8 @@ class user(models.Model):
     profile   = models.CharField(max_length=100)
     userType  = models.IntegerField()
     isDelete  = models.BooleanField(default=False)
+
+    objects = wecheckManager()
 
     @classmethod
     def userObject(cls,username,passwd,name,profile,userType):
@@ -56,6 +73,9 @@ class group(models.Model):
     owner     = models.ForeignKey(user,to_field='username',on_delete=models.CASCADE)
     member    = models.CharField(max_length=1000)
     isDelete    = models.BooleanField(default=False)
+
+    objects = wecheckManager()
+
 
     @classmethod
     def groupObject(cls,groupID,name,owner,member=None):
@@ -92,6 +112,9 @@ class check(models.Model):
     members     = models.CharField(max_length=1000)
     startDate   =models.DateField(auto_now_add=True)
 
+    objects = wecheckManager()
+
+
     @classmethod
     def checkObject(cls, groupID, duration=None,startUpTime = datetime.time(),results=None):
         new = check()
@@ -121,13 +144,10 @@ startUpTime   string         计划开始时间
 duration      Integer        计划持续时间
 repeat        string         计划作用域
 enable        boolean        计划开关
-    
-
 
 """
-
-
 class checkPlan(models.Model):
+
 
     planID      = models.AutoField(primary_key = True)
     groupID     = models.ForeignKey(group,to_field = 'groupID',on_delete=models.CASCADE)
@@ -136,6 +156,9 @@ class checkPlan(models.Model):
     repeat      = models.CharField(max_length=20)
     enable      = models.BooleanField(default=False)
     isDelete    = models.BooleanField(default=False)
+
+    objects = wecheckManager()
+
 
     @classmethod
     def checkPlanObejct(cls,groupID,startUpTime=None,duration=None,repeat=None,enable=False):
