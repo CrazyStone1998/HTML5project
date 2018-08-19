@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from HTML5project import settings
@@ -10,6 +13,16 @@ import time
 import datetime
 import string,random
 
+def imgRescource(request):
+    '''
+    # 获取用户 大脸照
+    :param request:
+    :return:
+    '''
+    path = settings.STATIC_ROOT+'/weCheck/img/'+request.path
+    with open(path,'rb') as f:
+        img = f.read()
+    return HttpResponse(img, content_type='image/jpg')
 
 @ajax_post_only
 def login(request):
@@ -19,15 +32,15 @@ def login(request):
     :return:
     '''
 
-    #获取用户 账户 和 密码
+    # 获取用户 账户 和 密码
     username = request.POST.get('username')
     password = request.POST.get('password')
-    #获取user对象
+    # 获取user对象
     user = userSystem(request)
-    #user登陆 认证
+    # user登陆 认证
     error = user.authentication(username=username,password=password)
-    #error为空 则登陆成功
-    #error不为空 则登陆不成功
+    # error为空 则登陆成功
+    # error不为空 则登陆不成功
     if not error:
         return JsonResponse({
             'status':200,
@@ -46,10 +59,10 @@ def logout(request):
     :param request:
     :return:
     '''
-    #清理缓存
+    # 清理缓存
     user = userSystem(request)
     user.delCache()
-    #清理 session
+    # 清理 session
     request.session.flush()
 
     return JsonResponse({
@@ -60,14 +73,14 @@ def logout(request):
 
 @ajax_post_only
 def register(request):
-    #错误信息列表
+    # 错误信息列表
     error = []
-    #后台获取并判断用户名和密码 是否为空
+    # 后台获取并判断用户名和密码 是否为空
     username = request.POST.get('username')
     passwd = request.POST.get('password')
     if username is None or passwd is None:
         error.append('The username&passwd cannot be empty')
-        #获取并判断 用户名是否存在
+        # 获取并判断 用户名是否存在
     elif not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():
 
         passwd   = make_password(passwd)
@@ -83,9 +96,9 @@ def register(request):
         with open(imgPath,'wb+') as f:
             for chunk in img.chunks():
                 f.write(chunk)
-        #调用 model类的 新建对象方法 存储用户对象
+        # 调用 model类的 新建对象方法 存储用户对象
         models.user.userObject(username,passwd,name,profile,userType,)
-        #返回 json
+        # 返回 json
         return JsonResponse({
                              'status':200,
                              'message':'OK'
@@ -107,7 +120,7 @@ def user_splitter(request,GET=None,POST=None):
     :param request:
     :return:
     '''
-    #错误信息列表
+    # 错误信息列表
     error = []
     if request.method == 'GET' and GET is not None:
         return GET(request)
@@ -130,7 +143,12 @@ def userGET(request):
     try:
         user = models.user.objects.get(username=userSystem(request).getUsername())
     except Exception as e:
-        print('somthing is wrong')
+        # 处理异常
+        error.append('user is not exist')
+        return JsonResponse({
+            'status': 202,
+            'message': error
+        })
     if user is not None:
 
         return JsonResponse({
@@ -168,7 +186,7 @@ def userPOST(request):
 
     img = request.FILES.get('profile')
     if img:
-        #修改 大脸照
+        # 修改 大脸照
         user.profile = settings.ICON_URL + '' + user.username + '.jpg'
         # 将 用户 大脸照 写入 本地文件中
         imgPath = os.path.join(settings.STATIC_ROOT, 'weCheck', 'img', user.username + '.jpg')
@@ -178,7 +196,7 @@ def userPOST(request):
         with open(imgPath, 'wb+') as f:
             for chunk in img.chunks():
                 f.write(chunk)
-    #保存 修改
+    # 保存 修改
     user.save()
 
     return JsonResponse({
@@ -455,7 +473,7 @@ def groupdelete(request):
 
 
 def checkstatus(request):
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     if user is not None:
         username=user.username
         nowdate=datetime.date.today()
@@ -528,7 +546,7 @@ def checkstatus(request):
 @ajax_post_only
 def checkcheck(request):
     error=[]
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     username=user.username
     groupid=request.POST.get('id')
     group=models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)
@@ -561,7 +579,7 @@ def checkcheck(request):
 @ajax_post_only
 def checkenable(request):
     error=[]
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     ownerID=user.username
     groupid = request.POST.get('id')
     group=models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)#查看该用户是否为该群组的所有者
@@ -586,7 +604,7 @@ def checkenable(request):
 #结束即时签到
 def checkdisable(request):
     error = []
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     ownerID = user.username
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)
@@ -618,7 +636,7 @@ def checkdisable(request):
 
 def schedule(request):
     error=[]
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     username=user.username#获取该用户的用户名称
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)#获取该群组，并且检查是否包含该用户
@@ -650,7 +668,7 @@ def schedule(request):
 @ajax_post_only
 def scheduleadd(request):
     error=[]
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
 
     username=user.useranme
     groupid = request.POST.get('id')
@@ -760,7 +778,7 @@ def scheduleadd(request):
 @ajax_post_only
 def scheduleupdate(request):
     error = []
-    user = models.user.objects.filter(username=request.session.get('username'))
+    user = models.user.objects.get(username=userSystem(request).getUsername())
     username = user.useranme
     scheduleId= request.POST.get('scheduleId')
     check_plan = models.checkPlan.objects.get(planID=scheduleId)
@@ -898,5 +916,3 @@ def scheduledelete(request):
             "status":202,
             "message":error
         })
-
-
