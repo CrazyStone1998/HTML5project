@@ -95,9 +95,9 @@ def register(request):
         with open(imgPath,'wb+') as f:
             for chunk in img.chunks():
                 f.write(chunk)
-        #调用 model类的 新建对象方法 存储用户对象
+        # 调用 model类的 新建对象方法 存储用户对象
         models.user.userObject(username,passwd,name,profile,userType,)
-        #返回 json
+        # 返回 json
         return JsonResponse({
                              'status':200,
                              'message':'OK'
@@ -185,7 +185,7 @@ def userPOST(request):
 
     img = request.FILES.get('profile')
     if img:
-        #修改 大脸照
+        # 修改 大脸照
         user.profile = settings.ICON_URL + '' + user.username + '.jpg'
         # 将 用户 大脸照 写入 本地文件中
         imgPath = os.path.join(settings.STATIC_ROOT, 'weCheck', 'img', user.username + '.jpg')
@@ -195,7 +195,7 @@ def userPOST(request):
         with open(imgPath, 'wb+') as f:
             for chunk in img.chunks():
                 f.write(chunk)
-    #保存 修改
+    # 保存 修改
     user.save()
 
     return JsonResponse({
