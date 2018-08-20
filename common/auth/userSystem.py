@@ -31,8 +31,9 @@ class userSystem(object):
 
         error = []
         # 获取登陆对象
-
+        print('---------------')
         userlogin = models.user.objects.get_or_none(username=username)
+        print('-----------------')
 
         if userlogin is not None:
             # 设置 self 中维护的username，设置缓存时需要

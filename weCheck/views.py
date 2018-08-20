@@ -338,15 +338,16 @@ def grouplist(request):
 
 
 
-#创建group
+# 创建group
 def groupadd(request):
     error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     if user.userType == 1:
         name = request.POST.get('name')
         id = ''.join(random.sample(string.ascii_letters+string.digits,6))
-        #生成6位的随机口令由大写小写字母和数字随机组成，多达21亿多种结果,基本不能重复
-        newGroup,flag=models.group.objects.get_or_create(groupID=id,name=name,member='',owner=user.username,isDelete=False)
+        print('username=========%s' % user.username)
+        # 生成6位的随机口令由大写小写字母和数字随机组成，多达21亿多种结果,基本不能重复
+        newGroup,flag=models.group.objects.get_or_create(groupID=id,name=name,member='', owner=user, isDelete=False)
         if newGroup is not None:
             return JsonResponse({'status':200,
                                  'message':'OK',
@@ -369,12 +370,13 @@ def groupadd(request):
 #加入群组
 def groupjoin(request):
     error = []
-    user = models.user.objects.get_or_none(userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     if user.userType == 0:
         id = request.POST.get('id')
         group = models.group.objects.get_or_none(groupID=id)
-        group.member = group.member +" "+user.username
+        group.member = group.member + " " + user.username
         group.save()
+
         return JsonResponse({
             'status':200,
             'message':'success'
@@ -390,7 +392,7 @@ def groupjoin(request):
 def groupquit(request):
     error = []
     id = request.POST.get('id')
-    user = models.user.objects.get_or_none(userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     group = models.group.objects.get_or_none(groupID=id)
     group_check = models.check.objects.get_or_none(groupID=id)
     if user.userType == 0 and group is not None:
