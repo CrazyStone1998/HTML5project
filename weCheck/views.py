@@ -211,7 +211,7 @@ def group(request):
         owner = group.owner
         member = group.member
         role = 0
-        if user.username == owner:
+        if user == owner:
             role = 2
             check = models.check.objects.get_or_none(groupID=groupID)
             if check is not None:
@@ -286,49 +286,62 @@ def grouplist(request):
     group_message = {}
     if user is not None:
         if user.userType == 1:
-            groups = models.group.objects.filter(owner=user.username)
-
-            for group in groups:
-                groupID = group.groupID
-                name = group.name
-                owner = group.owner
-                member = group.member
-                check = models.check.objects.get_or_none(groupID=groupID)
-                state = check.enable
-                group_message = {'id':groupID,'name':name,'owner':owner,'member':member,'state':state,'role':2}
-                data.append(group_message)
-            return     JsonResponse({'status':200,
+            groups = models.group.objects.filter(owner=user)
+            if groups.count()!=0:
+                for group in groups:
+                    groupID = group.groupID
+                    name = group.name
+                    owner = group.owner
+                    member = group.member
+                    check = models.check.objects.get_or_none(groupID=groupID)
+                    if check is not None:
+                        state = check.enable
+                        group_message = {'id':groupID,'name':name,'owner':owner,'member':member,'state':state,'role':2}
+                        data.append(group_message)
+                    else:
+                        group_message = {'id': groupID, 'name': name, 'owner': owner, 'member': member,
+                                     'role': 2}
+                        data.append(group_message)
+                return     JsonResponse({'status':200,
                                  'message':'success',
                                  'data':data
                                  })
+            else:
+                return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': data
+                                     })
         else :
             groups = models.group.objects.filter(member__contains=user.username)
+            if groups.count()!=0:
+                for group in groups :
+                    groupID = group.groupID
+                    name = group.name
+                    owner = group.owner
 
-            for group in groups :
-                groupID = group.groupID
-                name = group.name
-                owner = group.owner
-
-                check = models.check.objects.get_or_none(groupID=groupID)
-                state = check.enable
-                if state == True:
-                    if user.username in check.members:
-                        checked = True
-                    else:
-                        checked = False
-                    group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1,'checked':checked}
-                    data.append(group_message)
-                    return JsonResponse({'status':200,
+                    check = models.check.objects.get_or_none(groupID=groupID)
+                    if check is not None:
+                        state = check.enable
+                        if state == True:
+                            if user.username in check.members:
+                                checked = True
+                            else:
+                                checked = False
+                            group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1,'checked':checked}
+                            data.append(group_message)
+                        else:
+                            group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1}
+                            data.append(group_message)
+                return JsonResponse({'status':200,
                                  'message':'success',
                                  'data':data
                                  })
-                else:
-                    group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1}
-                    data.append(group_message)
-                    return JsonResponse({'status':200,
-                                 'message':'success',
-                                 'data':data
-                                 })
+            else:
+                return JsonResponse({'status': 200,
+                              'message': 'success',
+                              'data': data
+                              })
+
     else:
         error.append("user not exist ")
         return JsonResponse({'status':202,
@@ -346,7 +359,7 @@ def groupadd(request):
         name = request.POST.get('name')
         id = ''.join(random.sample(string.ascii_letters+string.digits,6))
         #生成6位的随机口令由大写小写字母和数字随机组成，多达21亿多种结果,基本不能重复
-        newGroup,flag=models.group.objects.get_or_create(groupID=id,name=name,member='',owner=user.username,isDelete=False)
+        newGroup,flag=models.group.objects.get_or_create(groupID=id,name=name,member='',owner=user,isDelete=False)
         if newGroup is not None:
             return JsonResponse({'status':200,
                                  'message':'OK',
@@ -398,13 +411,14 @@ def groupquit(request):
         index = member.find(user.username)
         if index != -1:
             member.replace(user.username,'')
-            if group_check.enable == True:
-                if user.username in group_check.members:
-                    members = group_check.members
-                    if members.find(user.username) != -1:
-                        members.replace(user.username,'')
-                        group_check.members = members
-                        group_check.save()
+            if group_check is not None:
+                if group_check.enable == True:
+                    if user.username in group_check.members:
+                        members = group_check.members
+                        if members.find(user.username) != -1:
+                            members.replace(user.username,'')
+                            group_check.members = members
+                            group_check.save()
             group.member = member
             group.save()
             return JsonResponse({'status':200,
@@ -421,12 +435,15 @@ def groupupdate(request):
     group = models.group.objects.get_or_none(groupID=id)
     user = models.user.objects.get_or_none(userSystem(request).getUsername())
     if group is not None:
-        if user.userType == 1 and group.owner == user.username:
-            owner = request.POST.get('owner',group.owner)
+        if user.userType == 1 and group.owner == user:
+            owner_name = request.POST.get('owner')
+            if owner_name is not None:
+                owner = models.user.objects.get(username=owner_name)
+                if owner.userType == 1:
+                    group.owner = owner
             member = request.POST.get('member',group.member)
             name = request.POST.get('name',group.name)
             group.member = member
-            group.owner = owner
             group.name = name
             group.save()
             return JsonResponse({'status':200,
@@ -447,7 +464,7 @@ def groupdelete(request):
     group = models.group.objects.get_or_none(groupID=id)
     user = models.user.objects.get_or_none(userSystem(request).getUsername())
     if group is not None:
-        if user.userType == 1 and group.owner == user.username:
+        if user.userType == 1 and group.owner == user:
             group.delete()
             return JsonResponse({'status':200,
                                  'message':'success'})

@@ -68,7 +68,7 @@ member       array           群组成员
 """
 class group(models.Model):
 
-    groupID   = models.CharField(max_length=20,unique=True)
+    groupID   = models.CharField(max_length=20,unique=True,primary_key=True)
     name      = models.CharField(max_length=20)
     owner     = models.ForeignKey(user,to_field='username',on_delete=models.CASCADE)
     member    = models.CharField(max_length=1000)
