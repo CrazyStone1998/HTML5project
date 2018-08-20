@@ -38,6 +38,12 @@ def login(request):
     # 获取user对象
     user = userSystem(request)
     # user登陆 认证
+    # 判定新用户登陆 顶替旧的用户
+    if user.getUsername() != username:
+        user.delCache()
+        # 清理 session
+        request.session.flush()
+
     error = user.authentication(username=username,password=password)
     # error为空 则登陆成功
     # error不为空 则登陆不成功
@@ -205,28 +211,36 @@ def group(request):
     group = models.group.objects.get_or_none(groupID=id)
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
 
+    print('id %s ' % id)
+    print(group.groupID)
+
     if group is not None:
         groupID = group.groupID
         name = group.name
-        owner = group.owner
+        owner = group.owner.username
         member = group.member
         role = 0
-        if user == owner:
+
+        if user.username == owner:
             role = 2
             check = models.check.objects.get_or_none(groupID=groupID)
             if check is not None:
                 state = check.enable
-                return JsonResponse({'status': 200,
-                                     'message': 'success',
-                                     'data': {
-                                     'id': groupID,
-                                     'name': name,
-                                     'owner': owner,
-                                     'member': member,
-                                     'role': role
-                                 },
-                                 'state':state
-                                 })
+            else:
+                state = False
+
+            return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                 'id': groupID,
+                                 'name': name,
+                                 'owner': owner,
+                                 'member': member,
+                                 'role': role
+                             },
+                             'state':state
+                             })
+
 
         elif user.username in group.member:
             role = 1
@@ -249,6 +263,7 @@ def group(request):
                                  'state': state,
                                  'checked':checked
                                  })
+
             elif state ==  False:
                 return JsonResponse({'status': 200,
                                  'message': 'success',
@@ -273,8 +288,8 @@ def group(request):
     else:
         error.append('group is not exist')
         return JsonResponse({
-            'status':202,
-            'message':error
+            'status': 202,
+            'message': error
         })
 
 
@@ -464,7 +479,7 @@ def groupdelete(request):
     error = []
     id = request.POST.get('id')
     group = models.group.objects.get_or_none(groupID=id)
-    user = models.user.objects.get_or_none(userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     if group is not None:
         if user.userType == 1 and group.owner == user:
             group.delete()
