@@ -442,7 +442,6 @@ def groupquit(request):
     if user.userType == 0 and group is not None:
         member = group.member
         index = member.find(user.username)
-        print(index)
         if index != -1:
             new_member = member.replace(user.username,' ')
             if group_check is not None:
