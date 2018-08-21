@@ -355,6 +355,10 @@ def grouplist(request):
                         else:
                             group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': state,'role': 1}
                             data.append(group_message)
+                    else:
+                        group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'state': False,
+                                         'role': 1}
+                        data.append(group_message)
                 return JsonResponse({'status':200,
                                  'message':'success',
                                  'data':data
@@ -438,7 +442,6 @@ def groupquit(request):
     if user.userType == 0 and group is not None:
         member = group.member
         index = member.find(user.username)
-        print(index)
         if index != -1:
             new_member = member.replace(user.username,' ')
             if group_check is not None:
