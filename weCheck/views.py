@@ -211,9 +211,6 @@ def group(request):
     group = models.group.objects.get_or_none(groupID=id)
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
 
-    print('id %s ' % id)
-    print(group.groupID)
-
     if group is not None:
         groupID = group.groupID
         name = group.name
@@ -358,6 +355,10 @@ def grouplist(request):
                         else:
                             group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': state,'role': 1}
                             data.append(group_message)
+                    else:
+                        group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'state': False,
+                                         'role': 1}
+                        data.append(group_message)
                 return JsonResponse({'status':200,
                                  'message':'success',
                                  'data':data
