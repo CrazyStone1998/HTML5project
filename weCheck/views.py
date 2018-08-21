@@ -347,30 +347,56 @@ def checkcheck(request):
             "message": error
         })
 
+
+
+
 #开启即时签到
-@ajax_post_only
 def checkenable(request):
+
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUsername())
-    ownerID=user.username
-    groupid = request.POST.get('id')
-    group=models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)#查看该用户是否为该群组的所有者
-    if group is not  None:#是该群组的所有者
-        check=models.check.objects.filter(groupID__exact=group).filter(enable__exact=True)#查看该群组是否还在开启签到中，保证一个群组同一时间只能开启一次签到
-        if check is None:#该群组没有处于签到中
-            models.check.checkObject(groupid)#创建新的签到对象
-            return JsonResponse({
-                "status": 200,
-                "message": 'ok'
-            })
-        else:#该群组上一次签到还没有结束
-            error.append("the group is checking")
-    else:#是该群组的所有者
-        error.append("you are not the owner of the group or the group not exists")
+    # 获取用户对象
+    try:
+        user = models.user.objects.get(username=userSystem(request).getUsername())
+    except Exception as e:
+        # 处理异常
+        error.append('user is not exist')
         return JsonResponse({
-            "status": 202,
-            "message": error
+            'status': 202,
+            'message': error
         })
+    if user is not None:
+        groupid = request.POST.get('id')
+        ownerID = user.username
+        print(groupid)
+        print(ownerID)
+        group=models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)#查看该用户是否为该群组的所有者
+
+
+        if group.count()!=0:#是该群组的所有者
+            print(1)
+            g=None
+            for i in group:
+                g=i
+            check=models.check.objects.filter(groupID__exact=g).filter(enable__exact=True)#查看该群组是否还在开启签到中，保证一个群组同一时间只能开启一次签到
+            print(2)
+            if check.count()==0:#该群组没有处于签到中
+                models.check.checkObject(g)#创建新的签到对象
+                return JsonResponse({
+                    'status': 200,
+                    'message': 'ok'
+                })
+            else:#该群组上一次签到还没有结束
+                error.append("the group is checking")
+                return JsonResponse({
+                    'status': 202,
+                    'message': error
+                })
+        else:#是该群组的所有者
+            error.append("you are not the owner of the group or the group not exists")
+            return JsonResponse({
+                'status': 202,
+                'message': error
+            })
 
 
 #结束即时签到

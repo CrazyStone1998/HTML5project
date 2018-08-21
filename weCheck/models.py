@@ -117,14 +117,10 @@ class check(models.Model):
 
 
     @classmethod
-    def checkObject(cls, groupID, duration=None,startUpTime = datetime.time(),results=None):
+    def checkObject(cls, group, duration=None,startUpTime = datetime.time(),results=None):
         new = check()
-        m = ""
-        users = group.objects.filter(groupID__exact=groupID)#属于这个小组的成员
-        for u in users:
-            m = m+","
-            m = m+u.username
-        new.groupID = groupID
+        m=str(group.member)
+        new.groupID = group
         nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
         new.startUpTime = nowtime
         new.duration = duration
