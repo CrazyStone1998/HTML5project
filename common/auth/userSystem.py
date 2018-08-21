@@ -30,12 +30,9 @@ class userSystem(object):
         '''
 
         error = []
+
         # 获取登陆对象
-        try:
-            userlogin = models.user.objects.get(username=username)
-        # 用户对象 不存在
-        except Exception as e:
-            error.append('user matching query does not exist.')
+        userlogin = models.user.objects.get_or_none(username=username)
 
         if userlogin is not None:
             # 设置 self 中维护的username，设置缓存时需要
@@ -50,7 +47,8 @@ class userSystem(object):
             else:
                 error.append('The password is not right')
         else:
-            error.append('The user is not exist')
+            # 用户对象 不存在
+            error.append('user matching query does not exist.')
 
         return error
 

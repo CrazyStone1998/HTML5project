@@ -1,34 +1,35 @@
-from django.contrib.auth import logout
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from HTML5project import settings
 from django.db.models import F,Q
 from weCheck import models
-from common.auth import userSystem
+from common.auth.userSystem import userSystem
+<<<<<<<<< Temporary merge branch 1
+from common.decorator.ajax_post_only import ajax_post_only
+=========
+
+from django.http import  HttpResponse
+>>>>>>>>> Temporary merge branch 2
 import os
 import time
 import datetime
+import face_recognition
 
-def ajax_post_only(func):
+
+
+def imgRescource(request):
     '''
-    装饰器
-    过滤掉非ajax post请求
-
-    :param func:
+    # 获取用户 大脸照
+    :param request:
     :return:
     '''
-    def wrapper(request,*args,**kwargs):
-        error = []
-        if request.method == 'POST':
-            return func(request,*args,**kwargs)
-        else:
-            error.append('request.method is not POST')
-            return JsonResponse({
-                'status':202,
-                'message':error,
-            })
-    return wrapper
-
+    path = settings.STATIC_ROOT+'/weCheck/img/'+request.path
+    with open(path,'rb') as f:
+        img = f.read()
+    return HttpResponse(img, content_type='image/jpg')
 
 @ajax_post_only
 def login(request):
@@ -38,16 +39,22 @@ def login(request):
     :return:
     '''
 
-    #获取用户 账户 和 密码
+    # 获取用户 账户 和 密码
     username = request.POST.get('username')
     password = request.POST.get('password')
-    #获取user对象
+<<<<<<<<< Temporary merge branch 1
+    # 获取user对象
     user = userSystem(request)
+    # user登陆 认证
+=========
+    #获取user对象
+    user =  userSystem(request)
     #user登陆 认证
+>>>>>>>>> Temporary merge branch 2
     error = user.authentication(username=username,password=password)
-    #error为空 则登陆成功
-    #error不为空 则登陆不成功
-    if error:
+    # error为空 则登陆成功
+    # error不为空 则登陆不成功
+    if not error:
         return JsonResponse({
             'status':200,
             'message':'OK',
@@ -58,16 +65,18 @@ def login(request):
                             'message':error
                                         })
 
-
-
+@ajax_post_only
 def logout(request):
     '''
     账号 登出
     :param request:
     :return:
     '''
-    #清理 session
-    logout(request)
+    # 清理缓存
+    user = userSystem(request)
+    user.delCache()
+    # 清理 session
+    request.session.flush()
 
     return JsonResponse({
         'status': 200,
@@ -77,21 +86,21 @@ def logout(request):
 
 @ajax_post_only
 def register(request):
-    #错误信息列表
+    # 错误信息列表
     error = []
-    #后台获取并判断用户名和密码 是否为空
+    # 后台获取并判断用户名和密码 是否为空
     username = request.POST.get('username')
     passwd = request.POST.get('password')
     if username is None or passwd is None:
         error.append('The username&passwd cannot be empty')
-        #获取并判断 用户名是否存在
+        # 获取并判断 用户名是否存在
     elif not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():
 
         passwd   = make_password(passwd)
         name     = request.POST.get('name')
         img      = request.FILES.get('profile')
         userType = request.POST.get('userType')
-        profile  = 'weCheck/'+username+'.jpg'
+        profile  = settings.ICON_URL+''+username+'.jpg'
         # 将 用户 大脸照 写入 本地文件中
         imgPath  = os.path.join(settings.STATIC_ROOT,'weCheck','img',username+'.jpg')
         # 判断用户 大脸照 是否存在 若存在 重写
@@ -115,45 +124,99 @@ def register(request):
         })
 
 
-def user(request):
+def user_splitter(request,GET=None,POST=None):
+    '''
+    获取用户信息 分流器
+    根据 request.method 分配方法
+    GET:view.userGET
+    POST:view.userPOST
+    :param request:
+    :return:
+    '''
+    # 错误信息列表
     error = []
-    if request.method == 'POST':
-        user = models.user.objects.filter(username=request.session.get('username'))
-        user.username = request.POST.get('username',user.username)
-        user.name = request.POST.get('name',user.name)
-        img = request.FILES.get('profile')
-        if img:
-            with open(os.path.join(settings.STATIC_ROOT, 'weCheck/img' + user.username + '.jpg'), 'wb') as f:
-                f.write(img)
-            user.profile = settings.STATIC_URL + 'weCheck/' + user.username + '.jpg'
-        user.save()
+    if request.method == 'GET' and GET is not None:
+        return GET(request)
+    elif request.method == 'POST' and POST is not None:
+        return POST(request)
+    else:
+        error.append('request.method is WRONG')
+
+
+def userGET(request):
+    '''
+    显示用户信息
+    :param request:
+    :return:
+    '''
+    # 错误信息列表
+    error = []
+    assert request.method == 'GET'
+    # 获取用户对象
+    try:
+        user = models.user.objects.get(username=userSystem(request).getUsername())
+    except Exception as e:
+        # 处理异常
+        error.append('user is not exist')
         return JsonResponse({
-            'status':200,
-            'message':'success'
+            'status': 202,
+            'message': error
+        })
+    if user is not None:
+
+        return JsonResponse({
+
+            'status': 200,
+            'message': 'success',
+            'data': {
+                'username': user.username,
+                'profile': user.profile,
+                'name': user.name
+
+            }
+        })
+    else:
+        error.append('user is not exist')
+        return JsonResponse({
+            'status': 202,
+            'message': error
         })
 
 
-    elif request.method == 'GET':
-        user = models.user.objects.filter(username=request.session.get('username'))
-        if user is not None:
-            username = user.username
-            profile = user.profile
-            name = user.name
-            return JsonResponse({
-                'status':200,
-                'message':'success',
-                'data':{
-                    'username':username,
-                    'profile':profile,
-                    'name':name
-                }
-            })
-        else:
-            error.append('user is not exist')
-            return JsonResponse({
-                'status':202,
-                'message':error
-            })
+def userPOST(request):
+    '''
+    修改用户信息
+    :param request:
+    :return:
+    '''
+    # 错误信息列表
+    error = []
+    assert request.method == 'POST'
+
+    user = models.user.objects.get(username=userSystem(request).getUsername())
+
+    user.name = request.POST.get('name',user.name)
+
+    img = request.FILES.get('profile')
+    if img:
+        #修改 大脸照
+        user.profile = settings.ICON_URL + '' + user.username + '.jpg'
+        # 将 用户 大脸照 写入 本地文件中
+        imgPath = os.path.join(settings.STATIC_ROOT, 'weCheck', 'img', user.username + '.jpg')
+        # 判断用户 大脸照 是否存在 若存在 重写
+        if os.path.exists(imgPath):
+            os.remove(imgPath)
+        with open(imgPath, 'wb+') as f:
+            for chunk in img.chunks():
+                f.write(chunk)
+    #保存 修改
+    user.save()
+
+    return JsonResponse({
+        'status':200,
+        'message':'success'
+    })
+
 
 
 def group(request):
@@ -183,7 +246,7 @@ def groupdelete(request):
 
 
 def checkstatus(request):
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get(username= userSystem(request).getUsername())
     if user is not None:
         username=user.username
         nowdate=datetime.date.today()
@@ -256,7 +319,7 @@ def checkstatus(request):
 @ajax_post_only
 def checkcheck(request):
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get(username=userSystem(request).getUserObject())
     username=user.username
     groupid=request.POST.get('id')
     group=models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)
@@ -626,3 +689,12 @@ def scheduledelete(request):
             "status":202,
             "message":error
         })
+
+def index(request):
+    baby1_img=face_recognition.load_image_file("baby1.jpg")
+    baby2_img=face_recognition.load_image_file("baby2.jpg")
+
+    baby1_encoding=face_recognition.face_encodings(baby1_img)[0]
+    baby2_encoding=face_recognition.face_encodings(baby2_img)[0]
+    result=face_recognition.compare_faces(baby1_encoding,baby2_encoding)
+    return HttpResponse(result)
