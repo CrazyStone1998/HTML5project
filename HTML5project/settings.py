@@ -85,11 +85,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wecheck',
         'USER': 'root',
-<<<<<<<<< Temporary merge branch 1
-        'PASSWORD': 'wecheck',
-=========
+
         'PASSWORD': 'root',
->>>>>>>>> Temporary merge branch 2
+
         'HOST': 'localhost',
         'POST': '3306',
 

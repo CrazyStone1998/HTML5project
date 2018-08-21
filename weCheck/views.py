@@ -7,12 +7,11 @@ from HTML5project import settings
 from django.db.models import F,Q
 from weCheck import models
 from common.auth.userSystem import userSystem
-<<<<<<<<< Temporary merge branch 1
+
 from common.decorator.ajax_post_only import ajax_post_only
-=========
+
 
 from django.http import  HttpResponse
->>>>>>>>> Temporary merge branch 2
 import os
 import time
 import datetime
@@ -42,15 +41,15 @@ def login(request):
     # 获取用户 账户 和 密码
     username = request.POST.get('username')
     password = request.POST.get('password')
-<<<<<<<<< Temporary merge branch 1
+
     # 获取user对象
     user = userSystem(request)
     # user登陆 认证
-=========
+
     #获取user对象
     user =  userSystem(request)
     #user登陆 认证
->>>>>>>>> Temporary merge branch 2
+
     error = user.authentication(username=username,password=password)
     # error为空 则登陆成功
     # error不为空 则登陆不成功
@@ -412,7 +411,7 @@ def schedule(request):
     user = models.user.objects.get(username=userSystem(request).getUsername())
     username=user.username#获取该用户的用户名称
     groupid = request.POST.get('id')
-    group = models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)#获取该群组，并且检查是否包含该用户
+    group = models.group.objects.filter(groupID__exact=groupid).filter(Q(member__contains=username) | Q(owner__exact=username))#获取该群组，并且检查是否包含该用户
     if group is not None:
         planlist=models.checkPlan.objects.filter(groupID__exact=group)
         planlist_request=[]

@@ -1,10 +1,10 @@
 from django.contrib import admin
-from django.urls import re_path,include
+from django.urls import re_path,include,path
 from weCheck import views
 
 app_name = 'weCheck'
 urlpatterns = [
-<<<<<<<<< Temporary merge branch 1
+
     re_path(r'^login/*$',           views.login,          name='login'),           # access: all
     re_path(r'^logout/*$',          views.logout,         name='logout'),          # access: all
     re_path(r'^register/*$',        views.register,       name='register'),        # access: all
@@ -24,8 +24,7 @@ urlpatterns = [
     re_path(r'^schedule/add/*$',    views.scheduleadd,    name='scheduleadd'),     # access: manager
     re_path(r'^schedule/update/*$', views.scheduleupdate, name='scheduleupdate'),  # access: manager
     re_path(r'^schedule/delete/*$', views.scheduledelete, name='scheduledelete'),  # access: manager
-=========
-    path('index/',           views.index,          name='index'),
+
     path('login/',           views.login,          name='login'),           #access: all
     path('logout/',          views.logout,         name='logout'),          #access: all
     path('register/',        views.register,       name='register'),        #access: all
@@ -45,6 +44,6 @@ urlpatterns = [
     path('schedule/add/',    views.scheduleadd,    name='scheduleadd'),     #access: manager
     path('schedule/update/', views.scheduleupdate, name='scheduleupdate'),  #access: manager
     path('schedule/delete/', views.scheduledelete, name='scheduledelete'),  #access: manager
->>>>>>>>> Temporary merge branch 2
+
 
 ]
