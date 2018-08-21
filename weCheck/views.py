@@ -211,9 +211,6 @@ def group(request):
     group = models.group.objects.get_or_none(groupID=id)
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
 
-    print('id %s ' % id)
-    print(group.groupID)
-
     if group is not None:
         groupID = group.groupID
         name = group.name
