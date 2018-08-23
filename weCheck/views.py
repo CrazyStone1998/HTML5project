@@ -233,9 +233,9 @@ def group(request):
                                      'name': name,
                                      'owner': owner,
                                      'member': member,
-                                     'role': role
-                                 },
-                                 'state':state
+                                     'role': role,
+                                     'state': state
+                                 }
                                  })
 
 
@@ -255,10 +255,10 @@ def group(request):
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'role': role
-                                 },
-                                 'state': state,
-                                 'checked':checked
+                                     'role': role,
+                                     'state': state,
+                                     'checked': checked
+                                 }
                                  })
 
                 elif state ==  False:
@@ -268,9 +268,9 @@ def group(request):
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'role': role
-                                 },
-                                 'state': state
+                                     'role': role,
+                                     'state': state
+                                 }
                                  })
             else:
                 return JsonResponse({'status': 200,
@@ -279,9 +279,9 @@ def group(request):
                                          'id': groupID,
                                          'name': name,
                                          'owner': owner,
-                                         'role': role
+                                         'role': role,
+                                         'state': False
                                      },
-                                     'state': False
                                      })
         else:
             return JsonResponse({'status': 200,
