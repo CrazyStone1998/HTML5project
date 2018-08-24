@@ -117,16 +117,12 @@ class check(models.Model):
 
 
     @classmethod
-    def checkObject(cls, groupID, duration=None,startUpTime = datetime.time(),results=None):
+    def checkObject(cls, group, duration=1000,startUpTime = str(time.strftime('%H:%M', time.localtime(time.time()))),results=" "):
         new = check()
-        m = ""
-        users = group.objects.filter(groupID__exact=groupID)#属于这个小组的成员
-        for u in users:
-            m = m+","
-            m = m+u.username
-        new.groupID = groupID
-        nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
-        new.startUpTime = nowtime
+        m=str(group.member)
+        new.groupID = group
+
+        new.startUpTime = startUpTime
         new.duration = duration
         new.results = results
         new.members = m
@@ -162,9 +158,9 @@ class checkPlan(models.Model):
 
 
     @classmethod
-    def checkPlanObejct(cls,groupID,startUpTime=None,duration=None,repeat=None,enable=False):
+    def checkPlanObejct(cls,group,startUpTime=None,duration=None,repeat=None,enable=False):
         new = checkPlan()
-        new.groupID = groupID
+        new.groupID = group
         new.startUpTime = startUpTime
         new.duration = duration
         new.repeat =repeat
