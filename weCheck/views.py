@@ -14,6 +14,7 @@ import time
 import datetime
 import string,random
 
+
 def imgRescource(request):
     '''
     # 获取用户 大脸照
@@ -336,7 +337,7 @@ def grouplist(request):
                                      'message': 'success',
                                      'data': data
                                      })
-        else :
+        else:
             groups = models.group.objects.filter(member__contains=user.username)
             if groups.count()!=0:
                 for group in groups :
