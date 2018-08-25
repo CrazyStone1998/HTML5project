@@ -8,6 +8,7 @@ from django.db.models import F,Q
 from weCheck import models
 from common.auth.userSystem import userSystem
 from common.decorator.ajax_post_only import ajax_post_only
+from django.views.decorators.cache import never_cache
 import os
 import time
 import datetime
@@ -135,7 +136,7 @@ def user_splitter(request,GET=None,POST=None):
     else:
         error.append('request.method is WRONG')
 
-
+@never_cache
 def userGET(request):
     '''
     显示用户信息
@@ -144,6 +145,7 @@ def userGET(request):
     '''
     # 错误信息列表
     error = []
+    print('------------------------------')
     assert request.method == 'GET'
     # 获取用户对象
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
@@ -204,7 +206,7 @@ def userPOST(request):
     })
 
 
-
+@never_cache
 def group(request):
     error = []
     id = request.GET.get('id')
@@ -301,7 +303,7 @@ def group(request):
         })
 
 
-
+@never_cache
 def grouplist(request):
     error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
@@ -515,7 +517,7 @@ def groupdelete(request):
             'message':error
         })
 
-
+@never_cache
 def checkstatus(request):
     user = models.user.objects.get_or_none(username= userSystem(request).getUsername())
     if user is not None:
@@ -714,7 +716,7 @@ def checkdisable(request):
 
 
 
-
+@never_cache
 def schedule(request):
     error=[]
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())

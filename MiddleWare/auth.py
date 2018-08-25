@@ -15,6 +15,7 @@ class authenticationMiddleWare(MiddlewareMixin):
         :return:
         '''
         #错误信息
+        print('--------------------------------------------')
         context = []
         if request.method == 'GET':
             requestData = request.GET
