@@ -723,8 +723,6 @@ def schedule(request):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username#获取该用户的用户名称
     groupid = request.POST.get('id')
-    print(groupid)
-    print(username)
     group = models.group.objects.filter(groupID__exact=groupid).filter(Q(member__contains=username)  |  Q(owner__exact=username))#获取该群组，并且检查是否包含该用户
     g=None
     for i in group:
@@ -871,7 +869,7 @@ def scheduleupdate(request):
     check_plan = models.checkPlan.objects.get(planID=scheduleId)
     groupId=request.POST.get('id',check_plan.groupID.groupID)
     startUpTime = str(request.POST.get('startUpTime', check_plan.startUpTime))
-    duration = request.POST.get('duration', check_plan.duration)
+    duration = int(request.POST.get('duration', check_plan.duration))
     repeat = request.POST.get('repeat', check_plan.repeat)
     enable = str(request.POST.get('enable', check_plan.enable))
     group = models.group.objects.filter(groupID__exact=groupId).filter(owner__exact=username)
@@ -884,7 +882,7 @@ def scheduleupdate(request):
     if group.count()!=0 :
         if (enable == (str(
                 check_plan.enable)).lower() and groupId == check_plan.groupID.groupID and startUpTime == check_plan.startUpTime
-                and duration == check_plan.duration and repeat == check_plan.repeat):
+                and duration == int(check_plan.duration) and repeat == check_plan.repeat):
             error.append("您未做任何修改")
             return JsonResponse({
                 "status": 202,
