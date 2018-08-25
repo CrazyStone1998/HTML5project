@@ -719,17 +719,8 @@ def schedule(request):
     error=[]
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username#获取该用户的用户名称
-<<<<<<< HEAD
-    groupid = request.GET.get('id')
-    print(groupid)
-    print(username)
-    group = models.group.objects.filter(groupID__exact=groupid).filter(Q(member__contains=username) | Q(owner__exact=username))#获取该群组，并且检查是否包含该用户
-=======
     groupid = request.POST.get('id')
-    print(groupid)
-    print(username)
     group = models.group.objects.filter(groupID__exact=groupid).filter(Q(member__contains=username)  |  Q(owner__exact=username))#获取该群组，并且检查是否包含该用户
->>>>>>> 48cacc0092718825023330d41c2aa2a0bbf7b159
     g=None
     for i in group:
         g=i
