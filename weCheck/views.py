@@ -220,13 +220,37 @@ def group(request):
         owner = group.owner.username
         member = group.member
         role = 0
-
+        flag = 0
         if user.username == owner:
             role = 2
-            check = models.check.objects.get_or_none(groupID=groupID)
-            if check is not None:
-                state = check.enable
-
+            checks = models.check.objects.filter(groupID=groupID)
+            if checks.count()!=0:
+                for check in checks:
+                    state = check.enable
+                    if state == True:
+                        flag =1
+                        return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'member': member,
+                                     'role': role,
+                                     'state': state
+                                 }
+                                 })
+                return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'member': member,
+                                     'role': role,
+                                     'state': False
+                                 }
+                                 })   
             else:
                 state = False
             return JsonResponse({'status': 200,
@@ -244,15 +268,16 @@ def group(request):
 
         elif user.username in group.member:
             role = 1
-            check = models.check.objects.get_or_none(groupID=groupID)
-            if check is not None:
-                state = check.enable
-                if state == True:
-                    if user.username in check.members:
-                        checked = True
-                    else:
-                        checked =  False
-                    return JsonResponse({'status': 200,
+            checks = models.check.objects.filter(groupID=groupID)
+            if checks.count()!=0 :
+                for check in checks:
+                    state = check.enable
+                    if state == True:
+                        if user.username in check.members:
+                            checked = True
+                        else:
+                            checked =  False
+                        return JsonResponse({'status': 200,
                                  'message': 'success',
                                  'data': {
                                      'id': groupID,
@@ -264,8 +289,8 @@ def group(request):
                                  }
                                  })
 
-                elif state ==  False:
-                    return JsonResponse({'status': 200,
+                state =  False
+                return JsonResponse({'status': 200,
                                  'message': 'success',
                                  'data': {
                                      'id': groupID,
