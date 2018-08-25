@@ -310,6 +310,7 @@ def grouplist(request):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     data = []
     group_message = {}
+    flag = 0
     if user is not None:
         if user.userType == 1:
             groups = models.group.objects.filter(owner=user)
@@ -319,11 +320,20 @@ def grouplist(request):
                     name = group.name
                     owner = group.owner
                     member = group.member
-                    check = models.check.objects.get_or_none(groupID=groupID)
-                    if check is not None:
-                        state = check.enable
-                        group_message = {'id':groupID,'name':name,'owner':owner.username,'member':member,'state':state,'role':2}
-                        data.append(group_message)
+                    checks = models.check.objects.filter(groupID=groupID)
+                    if checks.count()!=0:
+                        for check in checks:
+                            state = check.enable
+                            if state == True:
+                                group_message = {'id':groupID,'name':name,'owner':owner.username,'member':member,'state':state,'role':2}
+                                data.append(group_message)
+                                flag = 1
+                                break
+                        if flag == 0:
+                            group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'member': member,
+                                         'state': False,
+                                         'role': 2}
+                            data.append(group_message)
                     else:
                         group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'member': member,'state':False,
                                      'role': 2}
@@ -345,18 +355,21 @@ def grouplist(request):
                     name = group.name
                     owner = group.owner
 
-                    check = models.check.objects.get_or_none(groupID=groupID)
-                    if check is not None:
-                        state = check.enable
-                        if state == True:
-                            if user.username in check.members:
-                                checked = True
-                            else:
-                                checked = False
-                            group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': state,'role': 1,'checked':checked}
-                            data.append(group_message)
-                        else:
-                            group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': state,'role': 1}
+                    checks = models.check.objects.filter(groupID=groupID)
+                    if checks.count()!=0:
+                        for check in checks:
+                            state = check.enable
+                            if state == True:
+                                if user.username in check.members:
+                                    checked = True
+                                else:
+                                    checked = False
+                                group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': state,'role': 1,'checked':checked}
+                                data.append(group_message)
+                                flag = 1
+                                break
+                        if flag == 0:
+                            group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': False,'role': 1}
                             data.append(group_message)
                     else:
                         group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'state': False,
