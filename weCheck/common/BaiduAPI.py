@@ -11,27 +11,38 @@ def accessToken():
     request.add_header('Content-Type', 'application/json; charset=UTF-8')
     response = urllib.request.urlopen(request)
     return response.read()
-print(accessToken())
 
-def faceContrast(imageFile,imageUrl):
+def faceContrast(imageRequest,imageDatabase):
     '''
     人脸对比
     '''
 
     request_url = "https://aip.baidubce.com/rest/2.0/face/v3/match"
 
-    image = base64.b64encode(imageFile)
+    imageRequest_base64 = base64.b64encode(imageRequest)
+    imageDatabase_base64 = base64.b64encode(imageDatabase)
 
     params = json.dumps(
-        [{"image": image, "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW"},
-         {"image": imageUrl, "image_type": "URL", "face_type": "LIVE", "quality_control": "LOW"}])
+        [{"image": str(imageRequest_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW"},
+         {"image": str(imageDatabase_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW"}]
+    ).encode('utf-8')
 
-    access_token = accessToken.get('access_token')
+
+    access_token = eval(str(accessToken(),encoding='utf-8'))['access_token']
     request_url = request_url + "?access_token=" + access_token
     request = urllib.request.Request(url=request_url, data=params)
     request.add_header('Content-Type', 'application/json')
     response = urllib.request.urlopen(request)
-    content = response.read()
-    if content:
-        print
-        content
+    result = {}
+    content = eval(str(response.read(), encoding='utf-8'))
+    if content['error_msg'] == 'SUCCESS':
+        if content['result']['score'] >= 80:
+            result['result'] = 'SUCCESS'
+        else:
+            result['result'] = 'FAILED'
+            result['msg'] = 'undermatching'
+    else:
+        result['result'] = 'FAILED'
+        result['msg'] = content['error_msg']
+
+    return result

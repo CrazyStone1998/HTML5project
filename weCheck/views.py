@@ -732,30 +732,30 @@ def checkdisable(request):
 
 @never_cache
 def schedule(request):
-    error=[]
+    error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
-    username=user.username#获取该用户的用户名称
+    username = user.username    # 获取该用户的用户名称
     groupid = request.POST.get('id')
-    group = models.group.objects.filter(groupID__exact=groupid).filter(Q(member__contains=username)  |  Q(owner__exact=username))#获取该群组，并且检查是否包含该用户
-    g=None
+    group = models.group.objects.filter(groupID__exact=groupid).filter(Q(member__contains=username)|Q(owner__exact=username))#获取该群组，并且检查是否包含该用户
+    g = None
     for i in group:
-        g=i
-    if group.count()!=0:
-        planlist=models.checkPlan.objects.filter(groupID__exact=g)
-        planlist_request=[]
+        g = i
+    if group.count() != 0:
+        planlist = models.checkPlan.objects.filter(groupID__exact=g)
+        planlist_request = []
         for plan in planlist:
-            s={
-                "scheduleId":plan.planID,
-                "startUpTime":plan.startUpTime,
-                "duration":plan.duration,
-                "enable":plan.enable,
-                "repeat":plan.repeat,
+            s = {
+                "scheduleId": plan.planID,
+                "startUpTime": plan.startUpTime,
+                "duration": plan.duration,
+                "enable": plan.enable,
+                "repeat": plan.repeat,
             }
             planlist_request.append(s)
         return JsonResponse({
             "status": 200,
             "message": "ok",
-            "data":planlist_request
+            "data": planlist_request
         })
     else:
         error.append("you are not the member of the group or the group is not exists")
