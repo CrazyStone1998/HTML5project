@@ -907,6 +907,7 @@ def scheduleupdate(request):
     username = user.username
     scheduleId= request.POST.get('scheduleId')
     check_plan = models.checkPlan.objects.get(planID=scheduleId)
+    check_plan_id=check_plan.planID
     groupId=request.POST.get('id',check_plan.groupID.groupID)
     startUpTime = str(request.POST.get('startUpTime', check_plan.startUpTime))
     duration = int(request.POST.get('duration', check_plan.duration))
@@ -962,8 +963,11 @@ def scheduleupdate(request):
                         current_duration_second=duration*60*-1#负的当前计划持续的秒数
                         check_duration_second=che.duration*60
                         if(current_duration_second<=time1-time2<=check_duration_second):
-                            flag = True#表示由计划与当前计划矛盾
-                            break
+                            che_id=che.planID
+                            if che_id!=check_plan_id:
+
+                                flag = True#表示由计划与当前计划矛盾
+                                break
                 if(flag==True):
                     break
             if(flag==True):
