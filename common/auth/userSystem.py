@@ -10,6 +10,32 @@ from django.contrib.auth.hashers import check_password
 
 re = redis.StrictRedis(host='127.0.0.1',port='6379',db=0)
 
+def makepassword(username,password):
+    '''
+    自定义 函数 生成加密密码
+    :param username:
+    :param password:
+    :return:
+    '''
+    passwd = hashlib.sha1()
+    passwd.update((username+password+'password').encode('utf8'))
+
+    passwd = passwd.hexdigest()
+    return passwd
+
+def checkpassword(username,password1,password2):
+    '''
+    自定义 函数 检测密码
+    :param username:
+    :param password1:
+    :param password2:
+    :return:
+    '''
+    password1 = makepassword(username,password1)
+    return password1 == password2
+
+
+
 class userSystem(object):
 
     def __init__(self,request,response=None,username=None,**kwargs):
