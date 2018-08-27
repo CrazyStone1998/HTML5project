@@ -218,48 +218,69 @@ def group(request):
         groupID = group.groupID
         name = group.name
         owner = group.owner.username
-        member = group.member
+        members = group.member.split()
         role = 0
         flag = 0
         if user.username == owner:
             role = 2
+            #找到当前计划
             checks = models.check.objects.filter(groupID=groupID)
             if checks.count()!=0:
                 for check in checks:
                     state = check.enable
                     if state == True:
                         flag =1
+                        member_message = []
+                        for member in members:
+                            mem = models.user.objects.get_or_none(username=member)
+                            state_mem = mem.username in check.members
+                            member_user = {'username':mem.username,'name':mem.name,'state':state_mem}
+                            member_message.append(member_user)
                         return JsonResponse({'status': 200,
                                      'message': 'success',
                                      'data': {
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'member': member,
+                                     'member': member_message,
                                      'role': role,
                                      'state': state
                                  }
                                  })
+                #当前没有开启的签到计划
+                member_message = []
+                for member in members:
+                    mem = models.user.objects.get_or_none(username=member)
+                    state_mem = False
+                    member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
+                    member_message.append(member_user)
                 return JsonResponse({'status': 200,
                                      'message': 'success',
                                      'data': {
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'member': member,
+                                     'member': member_message,
                                      'role': role,
                                      'state': False
                                  }
-                                 })   
+                                 })
+            #当前群组还没有计划
             else:
                 state = False
+                member_message = []
+                for member in members:
+                    mem = models.user.objects.get_or_none(username=member)
+                    state_mem = False
+                    member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
+                    member_message.append(member_user)
             return JsonResponse({'status': 200,
                                      'message': 'success',
                                      'data': {
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'member': member,
+                                     'member': member_message,
                                      'role': role,
                                      'state': state
                                  }
