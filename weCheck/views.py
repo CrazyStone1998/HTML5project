@@ -734,7 +734,7 @@ def checkcheck(request):
                             error.append("人脸识别未通过")
                             return JsonResponse({
                                 "status": 202,
-                                "messa                         ge": error
+                                "message": error
                             })
 
 
