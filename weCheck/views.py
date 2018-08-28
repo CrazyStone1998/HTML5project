@@ -219,8 +219,9 @@ def group(request):
         name = group.name
         owner = group.owner.username
         members = group.member.split()
+        needLocation = group.needLocation
+        needFace = group.needFace
         role = 0
-        flag = 0
         if user.username == owner:
             role = 2
             #找到当前计划
@@ -229,22 +230,42 @@ def group(request):
                 for check in checks:
                     state = check.enable
                     if state == True:
-                        flag =1
                         member_message = []
                         for member in members:
                             mem = models.user.objects.get_or_none(username=member)
-                            state_mem = mem.username in check.members
+                            state_mem = mem.username in check.results
                             member_user = {'username':mem.username,'name':mem.name,'state':state_mem}
                             member_message.append(member_user)
+                        if needLocation == True:
+                            lng = group.lng
+                            lat = group.lat
+                            effectiveDistance = group.effectiveDistance
+                            locations = {'lng':lng,'lat':lat,'effectiveDistance':effectiveDistance}
+                            return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'members': member_message,
+                                     'role': role,
+                                     'state': state,
+                                     'needLocation':needLocation,
+                                     'location':locations,
+                                     'needFace':needFace,
+                                 }
+                                 })
                         return JsonResponse({'status': 200,
                                      'message': 'success',
                                      'data': {
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'member': member_message,
+                                     'members': member_message,
                                      'role': role,
-                                     'state': state
+                                     'state': state,
+                                     'needLocation':needLocation,
+                                     'needFace':needFace,
                                  }
                                  })
                 #当前没有开启的签到计划
@@ -254,17 +275,39 @@ def group(request):
                     state_mem = False
                     member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
                     member_message.append(member_user)
+                if needLocation == True:
+                    lng = group.lng
+                    lat = group.lat
+                    effectiveDistance = group.effectiveDistance
+                    locations = {'lng': lng, 'lat': lat, 'effectiveDistance': effectiveDistance}
+                    return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'members': member_message,
+                                     'role': role,
+                                     'state': False,
+                                     'needLocation':needLocation,
+                                     'needFace':needFace,
+                                     'location':locations,
+                                 }
+                                 })
                 return JsonResponse({'status': 200,
                                      'message': 'success',
                                      'data': {
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'member': member_message,
+                                     'members': member_message,
                                      'role': role,
-                                     'state': False
+                                     'state': False,
+                                     'needLocation':needLocation,
+                                     'needFace':needFace,
                                  }
                                  })
+
             #当前群组还没有计划
             else:
                 state = False
@@ -274,19 +317,38 @@ def group(request):
                     state_mem = False
                     member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
                     member_message.append(member_user)
-            return JsonResponse({'status': 200,
+                if needLocation == True:
+                    lng = group.lng
+                    lat = group.lat
+                    effectiveDistance = group.effectiveDistance
+                    locations = {'lng': lng, 'lat': lat, 'effectiveDistance': effectiveDistance}
+                    return JsonResponse({'status': 200,
                                      'message': 'success',
                                      'data': {
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'member': member_message,
+                                     'members': member_message,
                                      'role': role,
-                                     'state': state
+                                     'state': state,
+                                     'needLocation': needLocation,
+                                     'needFace': needFace,
+                                     'location': locations,
                                  }
                                  })
-
-
+                return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'members': member_message,
+                                     'role': role,
+                                     'state': state,
+                                     'needLocation': needLocation,
+                                     'needFace': needFace,
+                                 }
+                                 })
         elif user.username in group.member:
             role = 1
             checks = models.check.objects.filter(groupID=groupID)
@@ -294,7 +356,7 @@ def group(request):
                 for check in checks:
                     state = check.enable
                     if state == True:
-                        if user.username in check.members:
+                        if user.username in check.results:
                             checked = True
                         else:
                             checked =  False
@@ -306,7 +368,9 @@ def group(request):
                                      'owner': owner,
                                      'role': role,
                                      'state': state,
-                                     'checked': checked
+                                     'checked': checked,
+                                     'needLocation':needLocation,
+                                     'needFace':needFace
                                  }
                                  })
 
@@ -318,7 +382,9 @@ def group(request):
                                      'name': name,
                                      'owner': owner,
                                      'role': role,
-                                     'state': state
+                                     'state': state,
+                                     'needLocation':needLocation,
+                                     'needFace':needFace
                                  }
                                  })
             else:
@@ -329,7 +395,9 @@ def group(request):
                                          'name': name,
                                          'owner': owner,
                                          'role': role,
-                                         'state': False
+                                         'state': False,
+                                         'needLocation':needLocation,
+                                         'needFace':needFace
                                      },
                                      })
         else:
@@ -365,29 +433,86 @@ def grouplist(request):
                     groupID = group.groupID
                     name = group.name
                     owner = group.owner
-                    member = group.member
+                    members = group.member.split()
+                    needLocation = group.needLocation
+                    needFace = group.needFace
                     checks = models.check.objects.filter(groupID=groupID)
+                    #group 的 member 信息
+                    member_message = []
+                    #查找当前计划
                     if checks.count()!=0:
                         for check in checks:
                             state = check.enable
                             if state == True:
-                                group_message = {'id':groupID,'name':name,'owner':owner.username,'member':member,'state':state,'role':2}
-                                data.append(group_message)
                                 flag = 1
-                                break
+                                for member in members:
+                                    mem = models.user.objects.get_or_none(username=member)
+                                    state_mem = mem.username in check.results
+                                    member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
+                                    member_message.append(member_user)
+                                #基于位置的签到开启时
+                                if needLocation == True:
+                                    lng = group.lng
+                                    lat = group.lat
+                                    effectiveDistance = group.effectiveDistance
+                                    location = {'lng':lng,'lat':lat,'effectiveDistance':effectiveDistance}
+                                    group_message = {'id':groupID,'name':name,'owner':owner.username,'members':member_message,
+                                                     'state':state,'role':2,'needLocation':needLocation,
+                                                     'location':location,'needFace':needFace}
+                                    data.append(group_message)
+                                    break
+                                #不开启基于位置的签到
+                                group_message = {'id': groupID, 'name': name, 'owner': owner.username,
+                                                     'members': member_message,
+                                                     'state': state, 'role': 2, 'needLocation': needLocation,
+                                                     'needFace': needFace}
+                                data.append(group_message)
+                        #没有当前计划时
                         if flag == 0:
-                            group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'member': member,
+                            for member in members:
+                                mem = models.user.objects.get_or_none(username=member)
+                                state_mem = False
+                                member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
+                                member_message.append(member_user)
+                            if needLocation == True:
+                                lng = group.lng
+                                lat = group.lat
+                                effectiveDistance = group.effectiveDistance
+                                location = {'lng': lng, 'lat': lat, 'effectiveDistance': effectiveDistance}
+                                group_message = {'id': groupID, 'name': name, 'owner': owner.username,
+                                                 'members': member_message,
+                                                 'state': False, 'role': 2, 'needLocation': needLocation,
+                                                 'location': location, 'needFace': needFace}
+                                data.append(group_message)
+                            group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,
                                          'state': False,
-                                         'role': 2}
+                                         'role': 2,'needLocation': needLocation,'needFace': needFace}
                             data.append(group_message)
+                    #check中没有当前group的计划
                     else:
-                        group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'member': member,'state':False,
-                                     'role': 2}
+                        for member in members:
+                            mem = models.user.objects.get_or_none(username=member)
+                            state_mem = False
+                            member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
+                            member_message.append(member_user)
+                        if needLocation == True:
+                            lng = group.lng
+                            lat = group.lat
+                            effectiveDistance = group.effectiveDistance
+                            location = {'lng': lng, 'lat': lat, 'effectiveDistance': effectiveDistance}
+                            group_message = {'id': groupID, 'name': name, 'owner': owner.username,
+                                             'members': member_message,
+                                             'state': False, 'role': 2, 'needLocation': needLocation,
+                                             'location': location, 'needFace': needFace}
+                            data.append(group_message)
+                        group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,'state':False,
+                                     'role': 2,'needLocation': needLocation,'needFace': needFace}
                         data.append(group_message)
                 return     JsonResponse({'status':200,
                                  'message':'success',
                                  'data':data
                                  })
+            #当前monitor没有创建群组
             else:
                 return JsonResponse({'status': 200,
                                      'message': 'success',
@@ -400,26 +525,31 @@ def grouplist(request):
                     groupID = group.groupID
                     name = group.name
                     owner = group.owner
-
+                    needLocation = group.needLocation
+                    needFace = group.needFace
                     checks = models.check.objects.filter(groupID=groupID)
                     if checks.count()!=0:
                         for check in checks:
                             state = check.enable
                             if state == True:
-                                if user.username in check.members:
+                                if user.username in check.results:
                                     checked = True
                                 else:
                                     checked = False
-                                group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': state,'role': 1,'checked':checked}
-                                data.append(group_message)
-                                flag = 1
-                                break
+
+                                    flag = 1
+                                    break
+
                         if flag == 0:
-                            group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': False,'role': 1}
+
+                            group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': False,'role': 1,
+                                             'needLocation': needLocation,'needFace': needFace
+                                             }
                             data.append(group_message)
                     else:
+
                         group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'state': False,
-                                         'role': 1}
+                                         'role': 1,'needLocation': needLocation,'needFace': needFace}
                         data.append(group_message)
                 return JsonResponse({'status':200,
                                  'message':'success',
@@ -500,20 +630,20 @@ def groupquit(request):
     id = request.POST.get('id')
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     group = models.group.objects.get_or_none(groupID=id)
-    group_check = models.check.objects.get_or_none(groupID=id)
+   # group_check = models.check.objects.get_or_none(groupID=id)
     if user.userType == 0 and group is not None:
         member = group.member
         index = member.find(user.username)
         if index != -1:
-            new_member = member.replace(user.username,' ')
-            if group_check is not None:
-                if group_check.enable == True:
-                    if user.username in group_check.members:
-                        members = group_check.members
-                        if members.find(user.username) != -1:
-                            new_members = members.replace(user.username,'')
-                            group_check.members = new_members
-                            group_check.save()
+            new_member = member.replace(user.username,'')
+            #if group_check is not None:
+              #  if group_check.enable == True:
+                    #if user.username in group_check.results:
+                       # results = group_check.results
+                       # if results.find(user.username) != -1:
+                           # new_results = results.replace(user.username,'')
+                           # group_check.results = new_results
+                           # group_check.save()
             group.member = new_member
             group.save()
             return JsonResponse({'status':200,
@@ -531,15 +661,21 @@ def groupupdate(request):
     user = models.user.objects.get_or_none(username = userSystem(request).getUsername())
     if group is not None:
         if user.userType == 1 and group.owner.username == user.username:
-            owner_name = request.POST.get('owner')
-            if owner_name is not None:
-                owner = models.user.objects.get(username=owner_name)
-                if owner is not None:
-                    if owner.userType == 1:
-                        group.owner = owner
-            member = request.POST.get('member',group.member)
+
             name = request.POST.get('name',group.name)
-            group.member = member
+            needLocation = request.POST.get('needLocation',group.needLocation)
+            needFace = request.POST.get('needFace',group.needFace)
+        #    print(isinstance(needLocation,'a'))
+            if needLocation == str(True):
+                print(1)
+                lng = request.POST.get('lng',group.lng)
+                lat = request.POST.get('lat',group.lat)
+                effectiveDistance = request.POST.get('effectiveDistance',group.effectiveDistance)
+                group.lng = lng
+                group.lat = lat
+                group.effectiveDistance = effectiveDistance
+            group.needLocation = needLocation
+            group.needFace = needFace
             group.name = name
             group.save()
             return JsonResponse({'status':200,
