@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+from weCheck.common import  BaiduAPI
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
@@ -7,12 +8,14 @@ from HTML5project import settings
 from django.db.models import F,Q
 from weCheck import models
 from common.auth.userSystem import userSystem
-import face_recognition
 from common.decorator.ajax_post_only import ajax_post_only
+from django.views.decorators.cache import never_cache
+import math
 import os
 import time
 import datetime
 import string,random
+
 
 def imgRescource(request):
     '''
@@ -39,6 +42,12 @@ def login(request):
     # 获取user对象
     user = userSystem(request)
     # user登陆 认证
+    # 判定新用户登陆 顶替旧的用户
+    if user.getUsername() != username:
+        user.delCache()
+        # 清理 session
+        request.session.flush()
+
     error = user.authentication(username=username,password=password)
     # error为空 则登陆成功
     # error不为空 则登陆不成功
@@ -130,7 +139,7 @@ def user_splitter(request,GET=None,POST=None):
     else:
         error.append('request.method is WRONG')
 
-
+@never_cache
 def userGET(request):
     '''
     显示用户信息
@@ -139,17 +148,11 @@ def userGET(request):
     '''
     # 错误信息列表
     error = []
+    print('------------------------------')
     assert request.method == 'GET'
     # 获取用户对象
-    try:
-        user = models.user.objects.get(username=userSystem(request).getUsername())
-    except Exception as e:
-        # 处理异常
-        error.append('user is not exist')
-        return JsonResponse({
-            'status': 202,
-            'message': error
-        })
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+
     if user is not None:
 
         return JsonResponse({
@@ -181,7 +184,7 @@ def userPOST(request):
     error = []
     assert request.method == 'POST'
 
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
 
     user.name = request.POST.get('name',user.name)
 
@@ -206,66 +209,131 @@ def userPOST(request):
     })
 
 
-
+@never_cache
 def group(request):
     error = []
     id = request.GET.get('id')
-    group = models.group.objects.get(groupID=id)
-    user = models.user.objects.get(username=userSystem(request).getUsername())
-    userContain =models.group.objects.filter(member__contains=user.username)
+    group = models.group.objects.get_or_none(groupID=id)
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+
     if group is not None:
         groupID = group.groupID
         name = group.name
-        owner = group.owner
-        member = group.member
+        owner = group.owner.username
+        members = group.member.split()
         role = 0
+        flag = 0
         if user.username == owner:
             role = 2
-            check = models.check.objects.get(groupID=groupID)
-            state = check.enable
+            #找到当前计划
+            checks = models.check.objects.filter(groupID=groupID)
+            if checks.count()!=0:
+                for check in checks:
+                    state = check.enable
+                    if state == True:
+                        flag =1
+                        member_message = []
+                        for member in members:
+                            mem = models.user.objects.get_or_none(username=member)
+                            state_mem = mem.username in check.members
+                            member_user = {'username':mem.username,'name':mem.name,'state':state_mem}
+                            member_message.append(member_user)
+                        return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'member': member_message,
+                                     'role': role,
+                                     'state': state
+                                 }
+                                 })
+                #当前没有开启的签到计划
+                member_message = []
+                for member in members:
+                    mem = models.user.objects.get_or_none(username=member)
+                    state_mem = False
+                    member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
+                    member_message.append(member_user)
+                return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'member': member_message,
+                                     'role': role,
+                                     'state': False
+                                 }
+                                 })
+            #当前群组还没有计划
+            else:
+                state = False
+                member_message = []
+                for member in members:
+                    mem = models.user.objects.get_or_none(username=member)
+                    state_mem = False
+                    member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
+                    member_message.append(member_user)
             return JsonResponse({'status': 200,
-                                 'message': 'success',
-                                 'data': {
+                                     'message': 'success',
+                                     'data': {
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'member': member,
-                                     'role': role
-                                 },
-                                 'state':state
+                                     'member': member_message,
+                                     'role': role,
+                                     'state': state
+                                 }
                                  })
-        elif userContain is not None:
+
+
+        elif user.username in group.member:
             role = 1
-            check = models.check.objects.get(groupID=groupID)
-            state = check.enable
-            if state == True:
-                checked = models.check.objects.filter(groupID=groupID,members__contains=user.username)
-                if checked is not None:
-                    checked = True
-                elif checked is None:
-                    checked =  False
+            checks = models.check.objects.filter(groupID=groupID)
+            if checks.count()!=0 :
+                for check in checks:
+                    state = check.enable
+                    if state == True:
+                        if user.username in check.members:
+                            checked = True
+                        else:
+                            checked =  False
+                        return JsonResponse({'status': 200,
+                                 'message': 'success',
+                                 'data': {
+                                     'id': groupID,
+                                     'name': name,
+                                     'owner': owner,
+                                     'role': role,
+                                     'state': state,
+                                     'checked': checked
+                                 }
+                                 })
+
+                state =  False
                 return JsonResponse({'status': 200,
                                  'message': 'success',
                                  'data': {
                                      'id': groupID,
                                      'name': name,
                                      'owner': owner,
-                                     'role': role
-                                 },
-                                 'state': state,
-                                 'checked':checked
+                                     'role': role,
+                                     'state': state
+                                 }
                                  })
-            elif state ==  False:
+            else:
                 return JsonResponse({'status': 200,
-                                 'message': 'success',
-                                 'data': {
-                                     'id': groupID,
-                                     'name': name,
-                                     'owner': owner,
-                                     'role': role
-                                 },
-                                 'state': state
-                                 })
+                                     'message': 'success',
+                                     'data': {
+                                         'id': groupID,
+                                         'name': name,
+                                         'owner': owner,
+                                         'role': role,
+                                         'state': False
+                                     },
+                                     })
         else:
             return JsonResponse({'status': 200,
                                  'message': 'success',
@@ -279,65 +347,94 @@ def group(request):
     else:
         error.append('group is not exist')
         return JsonResponse({
-            'status':202,
-            'message':error
+            'status': 202,
+            'message': error
         })
 
 
-
+@never_cache
 def grouplist(request):
     error = []
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     data = []
     group_message = {}
+    flag = 0
     if user is not None:
         if user.userType == 1:
-            groups = models.group.objects.filter(owner=user.username)
-
-            for group in groups:
-                groupID = group.groupID
-                name = group.name
-                owner = group.owner
-                member = group.member
-                check = models.check.objects.get(groupID=groupID)
-                state = check.enable
-                group_message = {'id':groupID,'name':name,'owner':owner,'member':member,'state':state,'role':2}
-                data.append(group_message)
-            return     JsonResponse({'status':200,
+            groups = models.group.objects.filter(owner=user)
+            if groups.count()!=0:
+                for group in groups:
+                    groupID = group.groupID
+                    name = group.name
+                    owner = group.owner
+                    member = group.member
+                    checks = models.check.objects.filter(groupID=groupID)
+                    if checks.count()!=0:
+                        for check in checks:
+                            state = check.enable
+                            if state == True:
+                                group_message = {'id':groupID,'name':name,'owner':owner.username,'member':member,'state':state,'role':2}
+                                data.append(group_message)
+                                flag = 1
+                                break
+                        if flag == 0:
+                            group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'member': member,
+                                         'state': False,
+                                         'role': 2}
+                            data.append(group_message)
+                    else:
+                        group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'member': member,'state':False,
+                                     'role': 2}
+                        data.append(group_message)
+                return     JsonResponse({'status':200,
                                  'message':'success',
                                  'data':data
                                  })
-        else :
+            else:
+                return JsonResponse({'status': 200,
+                                     'message': 'success',
+                                     'data': data
+                                     })
+        else:
             groups = models.group.objects.filter(member__contains=user.username)
+            if groups.count()!=0:
+                for group in groups :
+                    groupID = group.groupID
+                    name = group.name
+                    owner = group.owner
 
-            for group in groups :
-                groupID = group.groupID
-                name = group.name
-                owner = group.owner
-
-                check = models.check.objects.get(groupID=groupID)
-                state = check.enable
-                if state == True:
-                    checked = models.check.objects.filter(groupID=groupID, members__contains=user.username)
-                    if checked is not None:
-                        checked = True
-                    elif checked is None:
-                        checked = False
-                    group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1,'checked':checked}
-                    data.append(group_message)
-                    return JsonResponse({'status':200,
+                    checks = models.check.objects.filter(groupID=groupID)
+                    if checks.count()!=0:
+                        for check in checks:
+                            state = check.enable
+                            if state == True:
+                                if user.username in check.members:
+                                    checked = True
+                                else:
+                                    checked = False
+                                group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': state,'role': 1,'checked':checked}
+                                data.append(group_message)
+                                flag = 1
+                                break
+                        if flag == 0:
+                            group_message = {'id': groupID, 'name': name, 'owner': owner.username,  'state': False,'role': 1}
+                            data.append(group_message)
+                    else:
+                        group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'state': False,
+                                         'role': 1}
+                        data.append(group_message)
+                return JsonResponse({'status':200,
                                  'message':'success',
                                  'data':data
                                  })
-                else:
-                    group_message = {'id': groupID, 'name': name, 'owner': owner,  'state': state,'role': 1}
-                    data.append(group_message)
-                    return JsonResponse({'status':200,
-                                 'message':'success',
-                                 'data':data
-                                 })
+            else:
+                return JsonResponse({'status': 200,
+                              'message': 'success',
+                              'data': data
+                              })
+
     else:
-        error.append("can\'t get the user ")
+        error.append("user not exist ")
         return JsonResponse({'status':202,
                              'message':error,
                              'data':group_message
@@ -345,15 +442,16 @@ def grouplist(request):
 
 
 
-#创建group
+# 创建group
 def groupadd(request):
     error = []
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     if user.userType == 1:
         name = request.POST.get('name')
         id = ''.join(random.sample(string.ascii_letters+string.digits,6))
+
         #生成6位的随机口令由大写小写字母和数字随机组成，多达21亿多种结果,基本不能重复
-        newGroup,flag=models.group.objects.get_or_create(groupID=id,name=name,member='',owner=user.username,isDelete=False)
+        newGroup,flag=models.group.objects.get_or_create(groupID=id,name=name,member='',owner=user,isDelete=False)
         if newGroup is not None:
             return JsonResponse({'status':200,
                                  'message':'OK',
@@ -376,12 +474,17 @@ def groupadd(request):
 #加入群组
 def groupjoin(request):
     error = []
-    user = models.user.objects.get(userSystem(request).getUsername())
+
+    user = models.user.objects.get_or_none(username = userSystem(request).getUsername())
     if user.userType == 0:
         id = request.POST.get('id')
-        group = models.group.objects.get(groupID=id)
-        group.member = group.member +" "+user.username
+        group = models.group.objects.get_or_none(groupID=id)
+        if group.member == '':
+            group.member = group.member+user.username
+        else:
+            group.member = group.member +" "+user.username
         group.save()
+
         return JsonResponse({
             'status':200,
             'message':'success'
@@ -389,7 +492,7 @@ def groupjoin(request):
     else:
         error.append('user type error, must be user ')
         return JsonResponse({
-            'status':202,
+            'status':403,
             'message':error
         })
 
@@ -397,22 +500,23 @@ def groupjoin(request):
 def groupquit(request):
     error = []
     id = request.POST.get('id')
-    user = models.user.objects.get(userSystem(request).getUsername())
-    group = models.group.objects.get(groupID=id)
-    group_check = models.check.objects.get(groupID=id)
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    group = models.group.objects.get_or_none(groupID=id)
+    group_check = models.check.objects.get_or_none(groupID=id)
     if user.userType == 0 and group is not None:
         member = group.member
         index = member.find(user.username)
         if index != -1:
-            member.replace(user.username,'')
-            if group_check.enable == True:
-                if user.username in group_check.members:
-                    members = group_check.members
-                    if members.find(user.username) != -1:
-                        members.replace(user.username,'')
-                        group_check.members = members
-                        group_check.save()
-            group.member = member
+            new_member = member.replace(user.username,' ')
+            if group_check is not None:
+                if group_check.enable == True:
+                    if user.username in group_check.members:
+                        members = group_check.members
+                        if members.find(user.username) != -1:
+                            new_members = members.replace(user.username,'')
+                            group_check.members = new_members
+                            group_check.save()
+            group.member = new_member
             group.save()
             return JsonResponse({'status':200,
                                  'message':'success'
@@ -425,15 +529,19 @@ def groupquit(request):
 def groupupdate(request):
     error = []
     id = request.POST.get('id')
-    group = models.group.objects.get(groupID=id)
-    user = models.user.objects.get(userSystem(request).getUsername())
+    group = models.group.objects.get_or_none(groupID=id)
+    user = models.user.objects.get_or_none(username = userSystem(request).getUsername())
     if group is not None:
-        if user.userType == 1 and group.owner == user.username:
-            owner = request.POST.get('owner',group.owner)
+        if user.userType == 1 and group.owner.username == user.username:
+            owner_name = request.POST.get('owner')
+            if owner_name is not None:
+                owner = models.user.objects.get(username=owner_name)
+                if owner is not None:
+                    if owner.userType == 1:
+                        group.owner = owner
             member = request.POST.get('member',group.member)
             name = request.POST.get('name',group.name)
             group.member = member
-            group.owner = owner
             group.name = name
             group.save()
             return JsonResponse({'status':200,
@@ -451,10 +559,10 @@ def groupupdate(request):
 def groupdelete(request):
     error = []
     id = request.POST.get('id')
-    group = models.group.objects.get(groupID=id)
-    user = models.user.objects.get(userSystem(request).getUsername())
+    group = models.group.objects.get_or_none(groupID=id)
+    user = models.user.objects.get_or_none(username = userSystem(request).getUsername())
     if group is not None:
-        if user.userType == 1 and group.owner == user.username:
+        if user.userType == 1 and group.owner == user:
             group.delete()
             return JsonResponse({'status':200,
                                  'message':'success'})
@@ -471,43 +579,39 @@ def groupdelete(request):
             'message':error
         })
 
-
+@never_cache
 def checkstatus(request):
-    user = models.user.objects.get(username= userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username= userSystem(request).getUsername())
     if user is not None:
         username=user.username
         nowdate=datetime.date.today()
-
-
         doneList=models.check.objects.filter(members__contains=username).filter(startDate__exact=nowdate).filter(results__contains=username)
         doneList_request=[]
-
         for done in doneList:
             s ={
-                "groupId":done.groupID,
-                "startUpTime":done.startUpTime
+                "groupId":str(done.groupID.groupID),
+                "startUpTime":str(done.startUpTime),
             }
             doneList_request.append(s)
-
 
         missedList= models.check.objects.filter(members__contains=username).filter(startDate__exact=nowdate).filter(enable__exact=False).filter(~Q(results__contains=username))
         missedList_request=[]
         for miss in missedList:
-            s={
-                "groupId": miss.groupID,
-                "startUpTime": miss.startUpTime
+
+            s1={
+                "groupId": str(miss.groupID.groupID),
+                "startUpTime": str(miss.startUpTime),
             }
-            missedList_request.append(s)
+            missedList_request.append(s1)
 
         openList=models.check.objects.filter(members__contains=username).filter(enable__exact=True)
         openList_request=[]
         for open in openList:
             s={
-                "groupId": open.groupID,
-                "startUpTime": open.startUpTime
+                "groupId": str(open.groupID.groupID),
+                "startUpTime": str(open.startUpTime),
             }
             openList_request.append(s)
-
         weekdate=str(nowdate.weekday()+1)
         belong_group=models.group.objects.filter(member__contains=username)#用户所属小组
         nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))#将现在的时间格式化为hh:mm
@@ -516,6 +620,7 @@ def checkstatus(request):
         time1 = time.mktime(t1)
 
         futureList=models.checkPlan.objects.filter(groupID__in=belong_group).filter(enable__exact=True).filter(repeat__contains=weekdate)
+
         #以上future并没有一时间为条件过滤，因为时间是字符串类型，在上述语句中不好操作
         futureList_request=[]
         for future in futureList:
@@ -526,8 +631,8 @@ def checkstatus(request):
             time2 = time.mktime(t2)
             if(time2>time1):
                 s={
-                    "groupId": future.groupID,
-                    "startUpTime": future.startUpTime
+                    "groupId": str(future.groupID.groupID),
+                    "startUpTime": str(future.startUpTime),
                 }
                 futureList_request.append(s)
 
@@ -538,35 +643,100 @@ def checkstatus(request):
                 "done":doneList_request,
                 "missed":missedList_request,
                 "open":openList_request,
-                "future":futureList_request
+                "future":futureList_request,
             }
         })
+
 
 
 @ajax_post_only
 def checkcheck(request):
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUserObject())
-    username=user.username
+    user = models.user.objects.get_or_none(username=userSystem(request).getUserObject())
+    username=str(user.username)
     groupid=request.POST.get('id')
     group=models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)
-    check=models.check.objects.get(groupID=group)
-    if group is not None:
-        if check.enable is False:
+    g=None
+    for i in group:
+        g=i
+    if group.count() != 0:
+        check = models.check.objects.filter(groupID__exact=g.groupID)
+        flag = False
+        c = None
+        for ch in check:
+            if ch.enable is True:
+                flag = True
+                c = ch
+                break
+        if flag is False:
             error.append("The group is not checking")
             return JsonResponse({
                 "status": 202,
                 "message": error
-            })
+             })
         else:
-            m = check.members
-            m = m+","+username
-            check.members = m
-            check.save()
-            return JsonResponse({
-                "status": 200,
-                "message": "ok"
-            })
+
+            m = c.results
+            if username in m:
+                error.append("您已经签到")
+                return JsonResponse({
+                    "status": 202,
+                    "message": error
+                })
+            else:
+
+                if g.needLocation==False and g.needFace == False:
+                    m = m + "," + username
+                    c.results = m
+                    c.save()
+                    return JsonResponse({
+                        "status": 200,
+                        "message": "ok"
+                    })
+                else :
+                    if g.needLocation==True:
+                        lng_now = float(request.POST.get('lng'))
+                        lat_now = float(request.POST.get('lat'))
+                        lng_base = float(g.lng)
+                        lat_base = float(g.lat)
+                        effectiveDistance = float(g.effectiveDistance)
+                        distance = 6371000 * 2 * (math.asin((math.pow(math.sin((lat_now - lat_base) / 2), 2) + math.cos(
+                            lat_now) * math.cos(lat_base) * pow(math.sin((lng_now - lng_base) / 2), 2)) ** 0.5))
+                        if distance <= effectiveDistance:
+                            m = m + "," + username
+                            c.results = m
+                            c.save()
+                            return JsonResponse({
+                                "status": 200,
+                                "message": "ok"
+                            })
+                        else:
+                            error.append("您不在签到要求范围内")
+                            return JsonResponse({
+                                "status": 202,
+                                "message": error
+                            })
+                    if g.needFace==True:
+                        imgPath = os.path.join(settings.STATIC_ROOT, 'weCheck', 'img', username + '.jpg')
+                        face_now = request.FILES.get('face').read()
+                        with open(imgPath, 'rb') as f:
+                            face_base = f.read()
+                        face_result = BaiduAPI.faceContrast(face_now, face_base)
+                        if str(face_result['result']=="SUCCESS"):
+                            m = m + "," + username
+                            c.results = m
+                            c.save()
+                            return JsonResponse({
+                                "status": 200,
+                                "message": "ok"
+                            })
+                        else:
+                            error.append("人脸识别未通过")
+                            return JsonResponse({
+                                "status": 202,
+                                "messa                         ge": error
+                            })
+
 
     else:
         error.append("group is not exist or you are not the member of the group")
@@ -579,40 +749,60 @@ def checkcheck(request):
 @ajax_post_only
 def checkenable(request):
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUsername())
-    ownerID=user.username
-    groupid = request.POST.get('id')
-    group=models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)#查看该用户是否为该群组的所有者
-    if group is not  None:#是该群组的所有者
-        check=models.check.objects.filter(groupID__exact=group).filter(enable__exact=True)#查看该群组是否还在开启签到中，保证一个群组同一时间只能开启一次签到
-        if check is None:#该群组没有处于签到中
-            models.check.checkObject(groupid)#创建新的签到对象
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    if user is not None:
+        ownerID=user.username
+        groupid = request.POST.get('id')
+        group=models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)#查看该用户是否为该群组的所有者
+        if group.count()!=0:#是该群组的所有者
+            g=None
+            for i in group:
+                g=i
+
+            check=models.check.objects.filter(groupID__exact=g).filter(enable__exact=True)#查看该群组是否还在开启签到中，保证一个群组同一时间只能开启一次签到
+            if check.count()==0:#该群组没有处于签到中
+                models.check.checkObject(g)#创建新的签到对象
+                return JsonResponse({
+                    "status": 200,
+                    "message": 'ok'
+                })
+            else:#该群组上一次签到还没有结束
+                error.append("the group is checking")
+                return JsonResponse({
+                    "status": 202,
+                    "message": error
+                })
+        else:#是该群组的所有者
+            error.append("you are not the owner of the group or the group not exists")
             return JsonResponse({
-                "status": 200,
-                "message": 'ok'
+                "status": 202,
+                "message": error
             })
-        else:#该群组上一次签到还没有结束
-            error.append("the group is checking")
-    else:#是该群组的所有者
-        error.append("you are not the owner of the group or the group not exists")
+    else:
+        error.append("user is not exist")
         return JsonResponse({
             "status": 202,
             "message": error
         })
 
-
 #结束即时签到
 def checkdisable(request):
     error = []
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     ownerID = user.username
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=ownerID)
-    if group is not None:
-        check=models.check.objects.filter(groupID__exact=group).filter(enable__exact=True)#找到该群组正在进行的签到，接着结束他
-        if check is not None:
-            check.enable = False
-            check.save()
+    g=None
+    if group.count()!=0:
+        for i in group :
+            g=i
+        check=models.check.objects.filter(groupID__exact=g).filter(enable__exact=True)#找到该群组正在进行的签到，接着结束他
+        if check.count()!=0:
+            c=None
+            for i in check:
+                c=i
+            c.enable = False
+            c.save()
             return JsonResponse({
                 "status": 200,
                 "message": "ok"
@@ -633,29 +823,34 @@ def checkdisable(request):
 
 
 
-
+@never_cache
 def schedule(request):
-    error=[]
-    user = models.user.objects.get(username=userSystem(request).getUsername())
+    error = []
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+
     username=user.username#获取该用户的用户名称
-    groupid = request.POST.get('id')
-    group = models.group.objects.filter(groupID__exact=groupid).filter(member__contains=username)#获取该群组，并且检查是否包含该用户
-    if group is not None:
-        planlist=models.checkPlan.objects.filter(groupID__exact=group)
-        planlist_request=[]
+    groupid = request.GET.get('id')
+    group = models.group.objects.filter(groupID__exact=groupid).filter(Q(member__contains=username)  |  Q(owner__exact=username))#获取该群组，并且检查是否包含该用户
+    g=None
+
+    for i in group:
+        g = i
+    if group.count() != 0:
+        planlist = models.checkPlan.objects.filter(groupID__exact=g)
+        planlist_request = []
         for plan in planlist:
-            s={
-                "scheduleId":plan.planID,
-                "startUpTime":plan.startUpTime,
-                "duration":plan.duration,
-                "enable":plan.enable,
-                "repeat":plan.repeat,
+            s = {
+                "scheduleId": plan.planID,
+                "startUpTime": plan.startUpTime,
+                "duration": plan.duration,
+                "enable": plan.enable,
+                "repeat": plan.repeat,
             }
             planlist_request.append(s)
         return JsonResponse({
             "status": 200,
             "message": "ok",
-            "data":planlist_request
+            "data": planlist_request
         })
     else:
         error.append("you are not the member of the group or the group is not exists")
@@ -668,20 +863,21 @@ def schedule(request):
 @ajax_post_only
 def scheduleadd(request):
     error=[]
-    user = models.user.objects.get(username=userSystem(request).getUsername())
-
-    username=user.useranme
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username=user.username
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=username)
+    g=None
+    for i in group:
+        g=i
     duration = request.POST.get('duration')
-    startUpTime = request.POST.get('startUpTime')
+    startUpTime = str(request.POST.get('startUpTime'))
     repeat = request.POST.get('repeat')
-    duration = request.POST.get('duration')
-    enable = request.POST.get('enable')
-    if group is not None:
-
-        if enable is False:#计划关闭状态可以加入
-            a=models.checkPlan.checkPlanObejct(groupid,startUpTime,duration,repeat,enable)
+    duration = int(request.POST.get('duration'))
+    enable = str(request.POST.get('enable'))
+    if group.count()!=0:
+        if enable=="false":#计划关闭状态可以加入
+            a=models.checkPlan.checkPlanObejct(g,startUpTime,duration,repeat,False)
             return JsonResponse({
                 "status": 200,
                 "message": 'ok',
@@ -691,7 +887,7 @@ def scheduleadd(request):
         else:#计划开启状态
             #查找与之相冲突的计划
             #先查找改组现在开启的计划
-            checkList = models.checkPlan.objects.filter(groupID__exact=group).filter(enable__exact=True)#这是本群开启的其他计划
+            checkList = models.checkPlan.objects.filter(groupID__exact=g).filter(enable__exact=True)#这是本群开启的其他计划
             flag = False#假设这些计划都不冲突
             #如果这些计划冲突必须满足点：1.有相同的周天 2.当前计划的开启时间+持续时间>原有计划的开始时间 或者原有计划的开始时间+持续时间>当前计划的开始时间
             weekday=repeat.split(",")
@@ -724,7 +920,7 @@ def scheduleadd(request):
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
                     check_thisday=models.check.objects.filter(enable__exact=True)
-                    if check_thisday is not None:
+                    if check_thisday.count()!=0:
                         nowtime=str(time.strftime('%H:%M', time.localtime(time.time())))
                         s1="20160916"+nowtime+":00"
                         t1 = time.strptime(s1, '%Y%m%d%H:%M:%S')
@@ -733,7 +929,7 @@ def scheduleadd(request):
                         t2 = time.strptime(s2, '%Y%m%d%H:%M:%S')
                         ti2=time.mktime(t2)
                         if ti1>ti2 :
-                            a = models.checkPlan.checkPlanObejct(groupid, startUpTime, duration, repeat, enable)
+                            a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
                             return  JsonResponse({
                                 "status": 200,
                                 "message": "ok",
@@ -745,11 +941,8 @@ def scheduleadd(request):
                                 "status": 202,
                                 "message":error
                             })
-
-
-
                     else:
-                        a = models.checkPlan.checkPlanObejct(groupid, startUpTime, duration, repeat, enable)
+                        a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
                         return  JsonResponse({
                             "status":200,
                             "message":"ok",
@@ -757,7 +950,7 @@ def scheduleadd(request):
                         })
 
                 else:
-                    a = models.checkPlan.checkPlanObejct(groupid, startUpTime, duration, repeat, enable)
+                    a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
                     return JsonResponse({
                         "status":200,
                         "message":"ok",
@@ -778,23 +971,38 @@ def scheduleadd(request):
 @ajax_post_only
 def scheduleupdate(request):
     error = []
-    user = models.user.objects.get(username=userSystem(request).getUsername())
-    username = user.useranme
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username = user.username
     scheduleId= request.POST.get('scheduleId')
     check_plan = models.checkPlan.objects.get(planID=scheduleId)
-    groupId=request.POST.get('id',check_plan.group_ID)
-    startUpTime = request.POST.get('startUpTime', check_plan.startUpTime)
-    duration = request.POST.get('duration', check_plan.duration)
+    check_plan_id=check_plan.planID
+    groupId=request.POST.get('id',check_plan.groupID.groupID)
+    startUpTime = str(request.POST.get('startUpTime', check_plan.startUpTime))
+    duration = int(request.POST.get('duration', check_plan.duration))
     repeat = request.POST.get('repeat', check_plan.repeat)
-    enable = request.POST.get('enable', check_plan.enable)
+    enable = str(request.POST.get('enable', check_plan.enable))
     group = models.group.objects.filter(groupID__exact=groupId).filter(owner__exact=username)
-    if group is not None:
-        if enable is False:#计划修改为关闭状态可以修改
-            check_plan.groupID=groupId
+
+
+    g=None
+    for i in group:
+        g = i
+
+    if group.count()!=0 :
+        if (enable == (str(
+                check_plan.enable)).lower() and groupId == check_plan.groupID.groupID and startUpTime == check_plan.startUpTime
+                and duration == int(check_plan.duration) and repeat == check_plan.repeat):
+            error.append("您未做任何修改")
+            return JsonResponse({
+                "status": 202,
+                "message": error
+            })
+        if enable=="false":#计划修改为关闭状态可以修改
+            check_plan.groupID=g
             check_plan.startUpTime=startUpTime
             check_plan.duration=duration
             check_plan.repeat=repeat
-            check_plan.enable=enable
+            check_plan.enable=False
             check_plan.save()
             return JsonResponse({
                 "status": 200,
@@ -804,7 +1012,8 @@ def scheduleupdate(request):
         else:#计划修改为开启状态
             #查找与之相冲突的计划
             #先查找改组现在开启的计划
-            checkList = models.checkPlan.objects.filter(groupID__exact=group).filter(enable__exact=True)#这是本群开启的其他计划
+
+            checkList = models.checkPlan.objects.filter(groupID__exact=g).filter(enable__exact=True)#这是本群开启的其他计划
             flag = False#假设这些计划都不冲突
             #如果这些计划冲突必须满足点：1.有相同的周天 2.当前计划的开启时间+持续时间>原有计划的开始时间 或者原有计划的开始时间+持续时间>当前计划的开始时间
             weekday=repeat.split(",")
@@ -822,8 +1031,11 @@ def scheduleupdate(request):
                         current_duration_second=duration*60*-1#负的当前计划持续的秒数
                         check_duration_second=che.duration*60
                         if(current_duration_second<=time1-time2<=check_duration_second):
-                            flag = True#表示由计划与当前计划矛盾
-                            break
+                            che_id=che.planID
+                            if che_id!=check_plan_id:
+
+                                flag = True#表示由计划与当前计划矛盾
+                                break
                 if(flag==True):
                     break
             if(flag==True):
@@ -833,11 +1045,12 @@ def scheduleupdate(request):
                     "message": error
                 })
             else:#与计划没有冲突，查看与开启的签到有没有冲突
+
                 nowdate = datetime.date.today()
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
                     check_thisday=models.check.objects.filter(enable__exact=True)
-                    if check_thisday is not None:
+                    if check_thisday.count()!=0:
                         nowtime=str(time.strftime('%H:%M', time.localtime(time.time())))
                         s1="20160916"+nowtime+":00"
                         t1 = time.strptime(s1, '%Y%m%d%H:%M:%S')
@@ -846,17 +1059,18 @@ def scheduleupdate(request):
                         t2 = time.strptime(s2, '%Y%m%d%H:%M:%S')
                         ti2=time.mktime(t2)
                         if ti1>ti2 :
-                            check_plan.groupID=groupId
+                            check_plan.groupID=g
                             check_plan.startUpTime=startUpTime
                             check_plan.duration=duration
                             check_plan.repeat=repeat
-                            check_plan.enable=enable
+                            check_plan.enable=True
                             check_plan.save()
                             return  JsonResponse({
                                 "status": 200,
                                 "message": "ok",
                             })
                         else:
+
                             error.append("您修改后的签到计划,与该群当前开启的签到可能存在冲突")
                             return  JsonResponse({
                                 "status": 202,
@@ -866,10 +1080,11 @@ def scheduleupdate(request):
 
 
                     else:
-                        check_plan.groupID=groupId
+
+                        check_plan.groupID=g
                         check_plan.startUpTime=startUpTime
                         check_plan.duration=duration
-                        check_plan.enable=enable
+                        check_plan.enable=True
                         check_plan.repeat=repeat
                         check_plan.save()
                         return  JsonResponse({
@@ -878,10 +1093,10 @@ def scheduleupdate(request):
                         })
 
                 else:
-                    check_plan.groupID= groupId
+                    check_plan.groupID= g
                     check_plan.startUpTime=startUpTime
                     check_plan.duration=duration
-                    check_plan.enable=enable
+                    check_plan.enable=True
                     check_plan.repeat=repeat
                     check_plan.save()
                     return JsonResponse({
@@ -901,27 +1116,32 @@ def scheduleupdate(request):
 
 
 def scheduledelete(request):
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username=user.username
     error=[]
     scheduleId = request.POST.get('scheduleId')
     check_plan = models.checkPlan.objects.filter(planID__exact=scheduleId)
-    if check_plan is not None:
-        check_plan.delete()
-        return JsonResponse({
-            "status":200,
-            "message":"ok"
-        })
+    c=None
+    for i in check_plan:
+        c = i
+    groupID=c.groupID.groupID
+    group=models.group.objects.filter(groupID__exact=groupID).filter(owner__exact=username)
+    if group.count()!=0:
+        if check_plan.count()!=0:
+            check_plan.delete()
+            return JsonResponse({
+                "status":200,
+                "message":"ok"
+            })
+        else:
+            error.append("该签到计划不存在")
+            return JsonResponse({
+                "status":202,
+                "message":error
+            })
     else:
-        error.append("该签到计划不存在")
+        error.append("You are not the owner of the group or the group is not exist")
         return JsonResponse({
-            "status":202,
-            "message":error
+            "status": 202,
+            "message": error
         })
-
-def index(request):
-    baby1_img=face_recognition.load_image_file("baby1.jpg")
-    baby2_img=face_recognition.load_image_file("baby2.jpg")
-
-    baby1_encoding=face_recognition.face_encodings(baby1_img)[0]
-    baby2_encoding=face_recognition.face_encodings(baby2_img)[0]
-    result=face_recognition.compare_faces(baby1_encoding,baby2_encoding)
-    return HttpResponse(result)

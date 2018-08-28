@@ -10,6 +10,32 @@ from django.contrib.auth.hashers import check_password
 
 re = redis.StrictRedis(host='127.0.0.1',port='6379',db=0)
 
+def makepassword(username,password):
+    '''
+    自定义 函数 生成加密密码
+    :param username:
+    :param password:
+    :return:
+    '''
+    passwd = hashlib.sha1()
+    passwd.update((username+password+'password').encode('utf8'))
+
+    passwd = passwd.hexdigest()
+    return passwd
+
+def checkpassword(username,password1,password2):
+    '''
+    自定义 函数 检测密码
+    :param username:
+    :param password1:
+    :param password2:
+    :return:
+    '''
+    password1 = makepassword(username,password1)
+    return password1 == password2
+
+
+
 class userSystem(object):
 
     def __init__(self,request,response=None,username=None,**kwargs):
@@ -30,12 +56,9 @@ class userSystem(object):
         '''
 
         error = []
+
         # 获取登陆对象
-        try:
-            userlogin = models.user.objects.get(username=username)
-        # 用户对象 不存在
-        except Exception as e:
-            error.append('user matching query does not exist.')
+        userlogin = models.user.objects.get_or_none(username=username)
 
         if userlogin is not None:
             # 设置 self 中维护的username，设置缓存时需要
@@ -50,7 +73,8 @@ class userSystem(object):
             else:
                 error.append('The password is not right')
         else:
-            error.append('The user is not exist')
+            # 用户对象 不存在
+            error.append('user matching query does not exist.')
 
         return error
 

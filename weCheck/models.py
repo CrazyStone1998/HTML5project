@@ -1,11 +1,26 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 import time
 import datetime
 
 # Create your models here.
+
+class wecheckManager(models.Manager):
+    def get_or_none(self,**kwargs):
+        '''
+        定义 get_or_none
+        该方法 当get对象不存在时返回none
+        :param kwargs:
+        :return:
+        '''
+        try:
+            return self.get(**kwargs)
+        except ObjectDoesNotExist:
+            return None
+
+
 """
            用户表
 字段         类型        描述
@@ -25,6 +40,8 @@ class user(models.Model):
     profile   = models.CharField(max_length=100)
     userType  = models.IntegerField()
     isDelete  = models.BooleanField(default=False)
+
+    objects = wecheckManager()
 
     @classmethod
     def userObject(cls,username,passwd,name,profile,userType):
@@ -51,11 +68,23 @@ member       array           群组成员
 """
 class group(models.Model):
 
-    groupID   = models.CharField(max_length=20,unique=True)
-    name      = models.CharField(max_length=20)
-    owner     = models.ForeignKey(user,to_field='username',on_delete=models.CASCADE)
-    member    = models.CharField(max_length=1000)
-    isDelete    = models.BooleanField(default=False)
+
+    groupID           = models.CharField(max_length=20,unique=True,primary_key=True)
+    name              = models.CharField(max_length=20)
+    owner             = models.ForeignKey(user, to_field='username', on_delete=models.CASCADE)
+    member            = models.CharField(max_length=1000)
+
+    needLocation      = models.BooleanField(default=False)
+    needFace          = models.BooleanField(default=False)
+
+    lng               = models.FloatField()
+    lat               = models.FloatField()
+    effectiveDistance = models.FloatField()
+
+    isDelete          = models.BooleanField(default=False)
+
+    objects = wecheckManager()
+
 
     @classmethod
     def groupObject(cls,groupID,name,owner,member=None):
@@ -92,17 +121,16 @@ class check(models.Model):
     members     = models.CharField(max_length=1000)
     startDate   =models.DateField(auto_now_add=True)
 
+    objects = wecheckManager()
+
+
     @classmethod
-    def checkObject(cls, groupID, duration=None,startUpTime = datetime.time(),results=None):
+    def checkObject(cls, group, duration=1000,startUpTime = str(time.strftime('%H:%M', time.localtime(time.time()))),results=" "):
         new = check()
-        m = ""
-        users = group.objects.filter(groupID__exact=groupID)#属于这个小组的成员
-        for u in users:
-            m = m+","
-            m = m+u.username
-        new.groupID = groupID
-        nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
-        new.startUpTime = nowtime
+        m=str(group.member)
+        new.groupID = group
+
+        new.startUpTime = startUpTime
         new.duration = duration
         new.results = results
         new.members = m
@@ -121,13 +149,10 @@ startUpTime   string         计划开始时间
 duration      Integer        计划持续时间
 repeat        string         计划作用域
 enable        boolean        计划开关
-    
-
 
 """
-
-
 class checkPlan(models.Model):
+
 
     planID      = models.AutoField(primary_key = True)
     groupID     = models.ForeignKey(group,to_field = 'groupID',on_delete=models.CASCADE)
@@ -137,10 +162,13 @@ class checkPlan(models.Model):
     enable      = models.BooleanField(default=False)
     isDelete    = models.BooleanField(default=False)
 
+    objects = wecheckManager()
+
+
     @classmethod
-    def checkPlanObejct(cls,groupID,startUpTime=None,duration=None,repeat=None,enable=False):
+    def checkPlanObejct(cls,group,startUpTime=None,duration=None,repeat=None,enable=False):
         new = checkPlan()
-        new.groupID = groupID
+        new.groupID = group
         new.startUpTime = startUpTime
         new.duration = duration
         new.repeat =repeat

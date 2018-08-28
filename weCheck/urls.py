@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import re_path,include
+from django.urls import re_path,include,path
 from weCheck import views
 
 app_name = 'weCheck'
@@ -24,5 +24,6 @@ urlpatterns = [
     re_path(r'^schedule/add/*$',    views.scheduleadd,    name='scheduleadd'),     # access: manager
     re_path(r'^schedule/update/*$', views.scheduleupdate, name='scheduleupdate'),  # access: manager
     re_path(r'^schedule/delete/*$', views.scheduledelete, name='scheduledelete'),  # access: manager
+
 
 ]
