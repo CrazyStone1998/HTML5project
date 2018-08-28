@@ -2,8 +2,6 @@
 import urllib.request
 import base64
 import json
-import hashlib
-
 
 def accessToken():
 
@@ -39,11 +37,14 @@ def faceContrast(imageRequest,imageDatabase):
     content = eval(str(response.read(), encoding='utf-8'))
     if content['error_msg'] == 'SUCCESS':
         if content['result']['score'] >= 80:
+            print(1)
             result['result'] = 'SUCCESS'
         else:
+            print(2)
             result['result'] = 'FAILED'
             result['msg'] = 'undermatching'
     else:
+        print(3)
         result['result'] = 'FAILED'
         result['msg'] = content['error_msg']
 

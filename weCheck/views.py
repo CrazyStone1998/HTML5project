@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+from weCheck.common import  BaiduAPI
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
@@ -9,6 +10,7 @@ from weCheck import models
 from common.auth.userSystem import userSystem
 from common.decorator.ajax_post_only import ajax_post_only
 from django.views.decorators.cache import never_cache
+import math
 import os
 import time
 import datetime
@@ -657,8 +659,7 @@ def checkcheck(request):
     g=None
     for i in group:
         g=i
-
-    if group.count()!=0:
+    if group.count() != 0:
         check = models.check.objects.filter(groupID__exact=g.groupID)
         flag = False
         c = None
@@ -672,23 +673,69 @@ def checkcheck(request):
             return JsonResponse({
                 "status": 202,
                 "message": error
-            })
+             })
         else:
+
             m = c.results
             if username in m:
-               error.append("您已经签到")
-               return JsonResponse({
-                   "status": 202,
-                   "message": error
-               })
-            else:
-                m = m + "," + username
-                c.results = m
-                c.save()
+                error.append("您已经签到")
                 return JsonResponse({
-                    "status": 200,
-                    "message": "ok"
+                    "status": 202,
+                    "message": error
                 })
+            else:
+
+                if g.needLocation==False and g.needFace == False:
+                    m = m + "," + username
+                    c.results = m
+                    c.save()
+                    return JsonResponse({
+                        "status": 200,
+                        "message": "ok"
+                    })
+                else :
+                    if g.needLocation==True:
+                        lng_now = float(request.POST.get('lng'))
+                        lat_now = float(request.POST.get('lat'))
+                        lng_base = float(g.lng)
+                        lat_base = float(g.lat)
+                        effectiveDistance = float(g.effectiveDistance)
+                        distance = 6371000 * 2 * (math.asin((math.pow(math.sin((lat_now - lat_base) / 2), 2) + math.cos(
+                            lat_now) * math.cos(lat_base) * pow(math.sin((lng_now - lng_base) / 2), 2)) ** 0.5))
+                        if distance <= effectiveDistance:
+                            m = m + "," + username
+                            c.results = m
+                            c.save()
+                            return JsonResponse({
+                                "status": 200,
+                                "message": "ok"
+                            })
+                        else:
+                            error.append("您不在签到要求范围内")
+                            return JsonResponse({
+                                "status": 202,
+                                "message": error
+                            })
+                    if g.needFace==True:
+                        imgPath = os.path.join(settings.STATIC_ROOT, 'weCheck', 'img', username + '.jpg')
+                        face_now = request.FILES.get('face').read()
+                        with open(imgPath, 'rb') as f:
+                            face_base = f.read()
+                        face_result = BaiduAPI.faceContrast(face_now, face_base)
+                        if str(face_result['result']=="SUCCESS"):
+                            m = m + "," + username
+                            c.results = m
+                            c.save()
+                            return JsonResponse({
+                                "status": 200,
+                                "message": "ok"
+                            })
+                        else:
+                            error.append("人脸识别未通过")
+                            return JsonResponse({
+                                "status": 202,
+                                "message": error
+                            })
 
 
     else:
