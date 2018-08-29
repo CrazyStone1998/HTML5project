@@ -91,30 +91,38 @@ def register(request):
     if username is None or passwd is None:
         error.append('The username&passwd cannot be empty')
         # 获取并判断 用户名是否存在
-    elif not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():
-
-        passwd   = make_password(passwd)
-        name     = request.POST.get('name')
-        img      = request.FILES.get('profile')
-        userType = request.POST.get('userType')
-        profile  = settings.ICON_URL+''+username+'.jpg'
-        # 将 用户 大脸照 写入 本地文件中
-        imgPath  = os.path.join(settings.STATIC_ROOT,'weCheck','img',username+'.jpg')
-        # 判断用户 大脸照 是否存在 若存在 重写
-        if os.path.exists(imgPath):
-            os.remove(imgPath)
-        with open(imgPath,'wb+') as f:
-            for chunk in img.chunks():
-                f.write(chunk)
-        # 调用 model类的 新建对象方法 存储用户对象
-        models.user.userObject(username,passwd,name,profile,userType,)
-        # 返回 json
-        return JsonResponse({
-                             'status':200,
-                             'message':'OK'
-                                        })
     else:
-        error.append('Username already exists')
+        img = request.FILES.get('profile')
+        # 检测用户 大脸照是否为人脸
+        result = BaiduAPI.facerecognize(img)
+        # 用户大脸照 判定成功
+        if result['result'] == 'SUCCESS':
+            if not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():
+
+                passwd   = make_password(passwd)
+                name     = request.POST.get('name')
+                userType = request.POST.get('userType')
+                profile  = settings.ICON_URL+''+username+'.jpg'
+                # 将 用户 大脸照 写入 本地文件中
+                imgPath  = os.path.join(settings.STATIC_ROOT,'weCheck','img',username+'.jpg')
+                # 判断用户 大脸照 是否存在 若存在 重写
+                if os.path.exists(imgPath):
+                    os.remove(imgPath)
+                with open(imgPath,'wb+') as f:
+                    for chunk in img.chunks():
+                        f.write(chunk)
+                # 调用 model类的 新建对象方法 存储用户对象
+                models.user.userObject(username,passwd,name,profile,userType,)
+                # 返回 json
+                return JsonResponse({
+                                     'status':200,
+                                     'message':'OK'
+                                                })
+            else:
+                error.append('Username already exists')
+        else:
+            # 用户大脸照 判定失败
+            error.append(result['msg'])
     return JsonResponse({
             'status':202,
             'message':error,
