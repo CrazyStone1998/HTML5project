@@ -485,6 +485,7 @@ def grouplist(request):
                                 member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
                                 member_message.append(member_user)
                             if needLocation == True:
+                                flag = 1
                                 lng = group.lng
                                 lat = group.lat
                                 effectiveDistance = group.effectiveDistance
@@ -494,10 +495,11 @@ def grouplist(request):
                                                  'state': False, 'role': 2, 'needLocation': needLocation,
                                                  'location': location, 'needFace': needFace}
                                 data.append(group_message)
-                            group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,
+                            if flag == 0:
+                                group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,
                                          'state': False,
                                          'role': 2,'needLocation': needLocation,'needFace': needFace}
-                            data.append(group_message)
+                                data.append(group_message)
                     #check中没有当前group的计划
                     else:
                         for member in members:
@@ -506,6 +508,7 @@ def grouplist(request):
                             member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
                             member_message.append(member_user)
                         if needLocation == True:
+                            flag = 1
                             lng = group.lng
                             lat = group.lat
                             effectiveDistance = group.effectiveDistance
@@ -515,9 +518,10 @@ def grouplist(request):
                                              'state': False, 'role': 2, 'needLocation': needLocation,
                                              'location': location, 'needFace': needFace}
                             data.append(group_message)
-                        group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,'state':False,
+                        if flag == 0:
+                            group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,'state':False,
                                      'role': 2,'needLocation': needLocation,'needFace': needFace}
-                        data.append(group_message)
+                            data.append(group_message)
                 return     JsonResponse({'status':200,
                                  'message':'success',
                                  'data':data
@@ -548,7 +552,12 @@ def grouplist(request):
                                     checked = False
 
                                     flag = 1
-                                    break
+                                group_message = {'id': groupID, 'name': name, 'owner': owner.username,
+                                                     'state': state, 'role': 1,'checked':checked,
+                                                     'needLocation': needLocation, 'needFace': needFace
+                                                     }
+                                data.append(group_message)
+                                break
 
                         if flag == 0:
 
