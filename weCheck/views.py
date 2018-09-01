@@ -668,14 +668,21 @@ def groupupdate(request):
             needLocation = request.POST.get('needLocation',group.needLocation)
             needFace = request.POST.get('needFace',group.needFace)
         #    print(isinstance(needLocation,'a'))
-            if needLocation == str(True):
-                print(1)
+            if needLocation == 'true':
+               # print(1)
                 lng = request.POST.get('lng',group.lng)
                 lat = request.POST.get('lat',group.lat)
                 effectiveDistance = request.POST.get('effectiveDistance',group.effectiveDistance)
                 group.lng = lng
                 group.lat = lat
                 group.effectiveDistance = effectiveDistance
+                needLocation=True
+            if needLocation == 'false':
+                needLocation = False
+            if needFace == 'true':
+                needFace =True
+            if needFace == 'false':
+                needFace = False
             group.needLocation = needLocation
             group.needFace = needFace
             group.name = name
