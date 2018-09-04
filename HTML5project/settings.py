@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djcelery',
     'weCheck',
 ]
 
@@ -86,7 +87,7 @@ DATABASES = {
         'NAME': 'wecheck',
         'USER': 'root',
 
-        'PASSWORD': 'wecheck',
+        'PASSWORD': 'Shijunyu',
         'HOST': 'localhost',
         'POST': '3306',
 
@@ -119,7 +120,7 @@ CACHES = {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': 'redis://127.0.0.1:6379',
         "OPTIONS": {
-            'DB':1,
+            'DB':0,
             'PASSWORD':'',
             #'PARSER_CLASS': 'redis.connection.HiredisParser',
             'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
@@ -152,6 +153,22 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+
+#celery settings
+#celery中间人 redis://redis服务所在的ip地址:端口/数据库号
+BROKER_URL = 'redis://localhost:6379/0'
+#celery结果返回，可用于跟踪结果
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+#celery内容等消息的格式设置
+CELERY_ACCEPT_CONTENT = ['application/json',]
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+#celery时区设置，使用settings中TIME_ZONE同样的时区
+CELERY_TIMEZONE = TIME_ZONE
+
 
 
 # Static files (CSS, JavaScript, Images)
