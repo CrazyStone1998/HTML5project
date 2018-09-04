@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-from weCheck.common import  BaiduAPI
+from weCheck.common import BaiduAPI
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
@@ -10,6 +10,7 @@ from weCheck import models
 from common.auth.userSystem import userSystem
 from common.decorator.ajax_post_only import ajax_post_only
 from django.views.decorators.cache import never_cache
+from weCheck.tasks import schedule_open_check,schedule_close_check
 import math
 import os
 import time
@@ -1021,9 +1022,9 @@ def schedule(request):
 
 @ajax_post_only
 def scheduleadd(request):
-    error=[]
+    error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
-    username=user.username
+    username = user.username
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=username)
     g=None
@@ -1043,12 +1044,13 @@ def scheduleadd(request):
                 "data":a.planID
             })
 
-        else:#计划开启状态
-            #查找与之相冲突的计划
-            #先查找改组现在开启的计划
+        else:
+            # 计划开启状态
+            # 查找与之相冲突的计划
+            # 先查找改组现在开启的计划
             checkList = models.checkPlan.objects.filter(groupID__exact=g).filter(enable__exact=True)#这是本群开启的其他计划
-            flag = False#假设这些计划都不冲突
-            #如果这些计划冲突必须满足点：1.有相同的周天 2.当前计划的开启时间+持续时间>原有计划的开始时间 或者原有计划的开始时间+持续时间>当前计划的开始时间
+            flag = False# 假设这些计划都不冲突
+            # 如果这些计划冲突必须满足点：1.有相同的周天 2.当前计划的开启时间+持续时间>原有计划的开始时间 或者原有计划的开始时间+持续时间>当前计划的开始时间
             weekday=repeat.split(",")
             for w in weekday:
                 for che in checkList:
@@ -1080,16 +1082,18 @@ def scheduleadd(request):
                 if weekdate in repeat:
                     check_thisday=models.check.objects.filter(enable__exact=True)
                     if check_thisday.count()!=0:
-                        nowtime=str(time.strftime('%H:%M', time.localtime(time.time())))
-                        s1="20160916"+nowtime+":00"
+                        nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
+                        s1 = "20160916"+nowtime+":00"
                         t1 = time.strptime(s1, '%Y%m%d%H:%M:%S')
-                        ti1=time.mktime(t1)
-                        s2="20160916"+startUpTime+":00"
+                        ti1 = time.mktime(t1)
+                        s2 = "20160916"+startUpTime+":00"
                         t2 = time.strptime(s2, '%Y%m%d%H:%M:%S')
-                        ti2=time.mktime(t2)
-                        if ti1>ti2 :
+                        ti2 = time.mktime(t2)
+                        if ti1 > ti2:
                             a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
-                            return  JsonResponse({
+                            # 开启 周期计划
+                            schedule_open_check(a.planID,g,startUpTime,duration,repeat)
+                            return JsonResponse({
                                 "status": 200,
                                 "message": "ok",
                                 "data": a.planID
@@ -1132,9 +1136,9 @@ def scheduleupdate(request):
     error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username = user.username
-    scheduleId= request.POST.get('scheduleId')
+    scheduleId = request.POST.get('scheduleId')
     check_plan = models.checkPlan.objects.get(planID=scheduleId)
-    check_plan_id=check_plan.planID
+    check_plan_id = check_plan.planID
     groupId=request.POST.get('id',check_plan.groupID.groupID)
     startUpTime = str(request.POST.get('startUpTime', check_plan.startUpTime))
     duration = int(request.POST.get('duration', check_plan.duration))
@@ -1163,6 +1167,10 @@ def scheduleupdate(request):
             check_plan.repeat=repeat
             check_plan.enable=False
             check_plan.save()
+
+            # 关闭 周期任务计划
+            schedule_close_check(scheduleId)
+
             return JsonResponse({
                 "status": 200,
                 "message": 'ok',
@@ -1209,21 +1217,24 @@ def scheduleupdate(request):
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
                     check_thisday=models.check.objects.filter(enable__exact=True)
-                    if check_thisday.count()!=0:
-                        nowtime=str(time.strftime('%H:%M', time.localtime(time.time())))
-                        s1="20160916"+nowtime+":00"
+                    if check_thisday.count() != 0:
+                        nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
+                        s1 = "20160916"+nowtime+":00"
                         t1 = time.strptime(s1, '%Y%m%d%H:%M:%S')
-                        ti1=time.mktime(t1)
-                        s2="20160916"+startUpTime+":00"
+                        ti1 = time.mktime(t1)
+                        s2 = "20160916"+startUpTime+":00"
                         t2 = time.strptime(s2, '%Y%m%d%H:%M:%S')
-                        ti2=time.mktime(t2)
-                        if ti1>ti2 :
+                        ti2 = time.mktime(t2)
+                        if ti1 > ti2:
                             check_plan.groupID=g
                             check_plan.startUpTime=startUpTime
                             check_plan.duration=duration
                             check_plan.repeat=repeat
                             check_plan.enable=True
                             check_plan.save()
+                            # 开启周期签到计划
+                            schedule_open_check(scheduleId,g,startUpTime,duration,repeat)
+
                             return  JsonResponse({
                                 "status": 200,
                                 "message": "ok",
@@ -1285,8 +1296,8 @@ def scheduledelete(request):
         c = i
     groupID=c.groupID.groupID
     group=models.group.objects.filter(groupID__exact=groupID).filter(owner__exact=username)
-    if group.count()!=0:
-        if check_plan.count()!=0:
+    if group.count() != 0:
+        if check_plan.count() != 0:
             check_plan.delete()
             return JsonResponse({
                 "status":200,
