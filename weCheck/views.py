@@ -435,12 +435,12 @@ def grouplist(request):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     data = []
     group_message = {}
-    flag = 0
     if user is not None:
         if user.userType == 1:
             groups = models.group.objects.filter(owner=user)
             if groups.count()!=0:
                 for group in groups:
+                    flag = 0
                     groupID = group.groupID
                     name = group.name
                     owner = group.owner
@@ -537,6 +537,7 @@ def grouplist(request):
             groups = models.group.objects.filter(member__contains=user.username)
             if groups.count()!=0:
                 for group in groups :
+                    flag = 0
                     groupID = group.groupID
                     name = group.name
                     owner = group.owner
