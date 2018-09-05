@@ -95,7 +95,7 @@ def register(request):
     else:
         img = request.FILES.get('profile')
         # 检测用户 大脸照是否为人脸
-        result = BaiduAPI.facerecognize(img)
+        result = BaiduAPI.facerecognize(img.read())
         # 用户大脸照 判定成功
         if result['result'] == 'SUCCESS':
             if not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():

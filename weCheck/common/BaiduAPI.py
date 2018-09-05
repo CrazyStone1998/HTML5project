@@ -54,7 +54,6 @@ def facerecognize(imageRegister):
 
     request_url = "https://aip.baidubce.com/rest/2.0/face/v3/detect"
     imageRegister_base64 = base64.b64encode(imageRegister)
-
     params = json.dumps(
         {"image": str(imageRegister_base64, 'utf-8'), "image_type": "BASE64","face_field": "faceshape,facetype",},
     ).encode('utf-8')
@@ -63,13 +62,12 @@ def facerecognize(imageRegister):
     request = urllib.request.Request(url=request_url, data=params)
     request.add_header('Content-Type', 'application/json')
     response = urllib.request.urlopen(request)
-    content = eval(str(response.read(), encoding='utf-8'))
+    content = json.loads(str(response.read(),encoding='utf-8'))
     result = {}
-    print(content)
     if content['error_msg'] == 'SUCCESS':
         if content['result']['face_list'][0]['face_probability'] >= 0.5:
             result['result'] = 'SUCCESS'
     else:
         result['result'] = 'FAILED'
-        result['msg'] = content['Face mismatch']
+        result['msg'] = 'Face mismatch'
     return result
