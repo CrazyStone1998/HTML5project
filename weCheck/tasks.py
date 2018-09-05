@@ -23,6 +23,8 @@ def schedule_open_check(scheduleId,group,startUpTime,duration,repeat):
     '''
     # 设置 cache 记录任务id
     re.set(scheduleId, schedule_open_check.request.id)
+    print("------id------%s" % schedule_open_check.request.id)
+    print('------id------%s' % re.get(scheduleId))
     # 设置 任务周期时间
     t = startUpTime.split(':')
     hour = int(t[0])
