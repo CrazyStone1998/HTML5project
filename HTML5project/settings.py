@@ -56,9 +56,7 @@ ROOT_URLCONF = 'HTML5project.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backe'
-                   ''
-                   'nds.django.DjangoTemplates',
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -86,7 +84,7 @@ DATABASES = {
         'NAME': 'wecheck',
         'USER': 'root',
 
-        'PASSWORD': 'wecheck',
+        'PASSWORD': 'Shijunyu',
         'HOST': 'localhost',
         'POST': '3306',
 
@@ -155,17 +153,11 @@ USE_TZ = True
 
 
 #celery settings
-#celery中间人 redis://redis服务所在的ip地址:端口/数据库号
 BROKER_URL = 'redis://localhost:6379/0'
-#celery结果返回，可用于跟踪结果
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-
-#celery内容等消息的格式设置
 CELERY_ACCEPT_CONTENT = ['application/json',]
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-
-#celery时区设置，使用settings中TIME_ZONE同样的时区
 CELERY_TIMEZONE = TIME_ZONE
 
 

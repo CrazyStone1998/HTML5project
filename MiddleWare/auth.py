@@ -54,14 +54,4 @@ class authenticationMiddleWare(MiddlewareMixin):
                         'status': 202,
                         'message': context,
                     })
-            # 用户已登录，而且url是login,将转到首页
-            if request.session.has_key('sessionID') and request.session.has_key('token') and 'login' in request.path:
-                if request.POST.get('username') == userSystem(request).getUsername():
-                    context.append('Repeat login')
-                    return JsonResponse({
-                        'status': 202,
-                        'message': context,
-                    })
-
-
 
