@@ -659,7 +659,6 @@ def groupquit(request):
     id = request.POST.get('id')
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     group = models.group.objects.get_or_none(groupID=id)
-   # group_check = models.check.objects.get_or_none(groupID=id)
     if user.userType == 0 and group is not None:
         member = group.member
         index = member.find(user.username)
