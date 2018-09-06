@@ -1081,7 +1081,7 @@ def scheduleadd(request):
                 nowdate = datetime.date.today()
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
-                    check_thisday=models.check.objects.filter(enable__exact=True)
+                    check_thisday=models.check.objects.filter(enable__exact=True).filter(groupID__exact=g)
                     if check_thisday.count()!=0:
                         nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
                         s1 = "20160916"+nowtime+":00"
