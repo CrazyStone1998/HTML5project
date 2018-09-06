@@ -10,7 +10,7 @@ from weCheck import models
 from common.auth.userSystem import userSystem
 from common.decorator.ajax_post_only import ajax_post_only
 from django.views.decorators.cache import never_cache
-from weCheck.tasks import schedule_open_check,schedule_close_check
+from weCheck.common import ScheduleThread
 import math
 import os
 import time
@@ -1152,6 +1152,7 @@ def scheduleadd(request):
     if group.count()!=0:
         if enable=="false":#计划关闭状态可以加入
             a=models.checkPlan.checkPlanObejct(g,startUpTime,duration,repeat,False)
+            print('执行到这里')
             return JsonResponse({
                 "status": 200,
                 "message": 'ok',
@@ -1206,7 +1207,9 @@ def scheduleadd(request):
                         if ti1 > ti2:
                             a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
                             # 开启 周期计划
-                            schedule_open_check(a.planID,g,startUpTime,duration,repeat)
+                            print('---执行到这里--')
+                            ScheduleThread.addScheduleThread(a.planID, g, startUpTime, duration, repeat)
+                            print('执行完毕')
                             return JsonResponse({
                                 "status": 200,
                                 "message": "ok",
@@ -1220,6 +1223,9 @@ def scheduleadd(request):
                             })
                     else:
                         a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
+                        print('---执行到这里--')
+                        ScheduleThread.addScheduleThread(a.planID, g, startUpTime, duration, repeat)
+                        print('执行完毕')
                         return  JsonResponse({
                             "status":200,
                             "message":"ok",
@@ -1228,6 +1234,9 @@ def scheduleadd(request):
 
                 else:
                     a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
+                    print('---执行到这里--')
+                    ScheduleThread.addScheduleThread(a.planID, g, startUpTime, duration, repeat)
+                    print('执行完毕')
                     return JsonResponse({
                         "status":200,
                         "message":"ok",
@@ -1283,7 +1292,8 @@ def scheduleupdate(request):
             check_plan.save()
 
             # 关闭 周期任务计划
-            schedule_close_check(scheduleId)
+            print('-----关闭一个计划 ------')
+            ScheduleThread.deleteScheduleThread(scheduleId)
 
             return JsonResponse({
                 "status": 200,
@@ -1347,7 +1357,7 @@ def scheduleupdate(request):
                             check_plan.enable=True
                             check_plan.save()
                             # 开启周期签到计划
-                            schedule_open_check(scheduleId,g,startUpTime,duration,repeat)
+                            ScheduleThread.addScheduleThread(scheduleId,g,startUpTime,duration,repeat)
 
                             return  JsonResponse({
                                 "status": 200,
@@ -1371,6 +1381,9 @@ def scheduleupdate(request):
                         check_plan.enable=True
                         check_plan.repeat=repeat
                         check_plan.save()
+                        print('---执行到这里--')
+                        ScheduleThread.addScheduleThread(scheduleId, g, startUpTime, duration, repeat)
+                        print('执行完毕')
                         return  JsonResponse({
                             "status":200,
                             "message":"OK",
@@ -1383,6 +1396,9 @@ def scheduleupdate(request):
                     check_plan.enable=True
                     check_plan.repeat=repeat
                     check_plan.save()
+                    print('---执行到这里--')
+                    ScheduleThread.addScheduleThread(scheduleId, g, startUpTime, duration, repeat)
+                    print('执行完毕')
                     return JsonResponse({
                         "status":200,
                         "message":"ok",

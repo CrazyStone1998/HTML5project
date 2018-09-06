@@ -54,6 +54,9 @@ class authenticationMiddleWare(MiddlewareMixin):
                         'status': 202,
                         'message': context,
                     })
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 625afe0777503463c5f4febc890d2e3cc58dc84f
 

@@ -10,7 +10,7 @@ from weCheck.models import check
 re = redis.StrictRedis(host='127.0.0.1',port='6379',db=0)
 
 @app.task
-def schedule_open_check(scheduleId,group,startUpTime,duration,repeat):
+def schedule_open_check():
     '''
     函数 用于 周期开启签到
                 关闭签到
@@ -22,26 +22,32 @@ def schedule_open_check(scheduleId,group,startUpTime,duration,repeat):
     :return:
     '''
     # 设置 cache 记录任务id
-    re.set(scheduleId, schedule_open_check.request.id)
-    print("------id------%s" % schedule_open_check.request.id)
-    print('------id------%s' % re.get(scheduleId))
-    # 设置 任务周期时间
-    t = startUpTime.split(':')
-    hour = int(t[0])
-    minute = int(t[1])
-    day_of_week = [b%7 for b in [int(a) for a in repeat.split(',')]]
+    # re.set(scheduleId, schedule_open_check.request.id)
+    # print("------id------%s" % schedule_open_check.request.id)
+    # print('------id------%s' % re.get(scheduleId))
+    # # 设置 任务周期时间
+    # t = startUpTime.split(':')
+    # hour = int(t[0])
+    # minute = int(t[1])
+    # day_of_week = [b%7 for b in [int(a) for a in repeat.split(',')]]
+    # print(minute)
+    # print(hour)
+    # print(day_of_week)
+
     # 定义 周期函数
-    @periodic_task(run_every=crontab(minute=minute,hour=hour,day_of_week=day_of_week))
+    @periodic_task(run_every=10)
     def open_check():
+        print('这是函数')
         # 开启签到
-        new = check.checkObject(group=group,duration=duration)
+       # new = check.checkObject(group=group,duration=duration)
         # 等待签到结束
-        time.sleep(int(duration)*60)
+        time.sleep(int('20'))
         # 关闭签到
-        new.enable = False
-        new.save()
+        print('结束')
+      #  new.enable = False
+      #  new.save()
     # 返回函数
-    return open_check
+    return open_check.delay()
 
 @app.task
 def schedule_close_check(scheduleId):
@@ -56,6 +62,19 @@ def schedule_close_check(scheduleId):
     app.control.revoke(id=id,terminate=True)
 
 
+
+@periodic_task(run_every=10)
+def open_check():
+    print('lalllallllaldlasdsadasd')
+    # 开启签到
+   # new = check.checkObject(group=group,duration=duration)
+    # 等待签到结束
+    time.sleep(int('1'))
+    # 关闭签到
+    print('结束')
+  #  new.enable = False
+  #  new.save()
+# 返回函数
 
 
 
