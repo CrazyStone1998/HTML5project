@@ -426,12 +426,14 @@ def grouplist(request):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     data = []
     group_message = {}
-    flag = 0
+
     if user is not None:
         if user.userType == 1:
             groups = models.group.objects.filter(owner=user)
+            print(groups)
             if groups.count()!=0:
                 for group in groups:
+                    flag = 0
                     groupID = group.groupID
                     name = group.name
                     owner = group.owner
@@ -469,7 +471,7 @@ def grouplist(request):
                                                      'state': state, 'role': 2, 'needLocation': needLocation,
                                                      'needFace': needFace}
                                 data.append(group_message)
-                        #没有当前计划时
+                        #没有计划开启时
                         if flag == 0:
                             for member in members:
                                 mem = models.user.objects.get_or_none(username=member)
@@ -477,6 +479,7 @@ def grouplist(request):
                                 member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
                                 member_message.append(member_user)
                             if needLocation == True:
+                                flag = 1
                                 lng = group.lng
                                 lat = group.lat
                                 effectiveDistance = group.effectiveDistance
@@ -486,10 +489,11 @@ def grouplist(request):
                                                  'state': False, 'role': 2, 'needLocation': needLocation,
                                                  'location': location, 'needFace': needFace}
                                 data.append(group_message)
-                            group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,
+                            if flag == 0:
+                                group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,
                                          'state': False,
                                          'role': 2,'needLocation': needLocation,'needFace': needFace}
-                            data.append(group_message)
+                                data.append(group_message)
                     #check中没有当前group的计划
                     else:
                         for member in members:
@@ -498,6 +502,7 @@ def grouplist(request):
                             member_user = {'username': mem.username, 'name': mem.name, 'state': state_mem}
                             member_message.append(member_user)
                         if needLocation == True:
+                            flag = 1
                             lng = group.lng
                             lat = group.lat
                             effectiveDistance = group.effectiveDistance
@@ -507,9 +512,10 @@ def grouplist(request):
                                              'state': False, 'role': 2, 'needLocation': needLocation,
                                              'location': location, 'needFace': needFace}
                             data.append(group_message)
-                        group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,'state':False,
+                        if flag == 0:
+                            group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,'state':False,
                                      'role': 2,'needLocation': needLocation,'needFace': needFace}
-                        data.append(group_message)
+                            data.append(group_message)
                 return     JsonResponse({'status':200,
                                  'message':'success',
                                  'data':data
@@ -524,6 +530,7 @@ def grouplist(request):
             groups = models.group.objects.filter(member__contains=user.username)
             if groups.count()!=0:
                 for group in groups :
+                    flag = 0
                     groupID = group.groupID
                     name = group.name
                     owner = group.owner
@@ -540,7 +547,12 @@ def grouplist(request):
                                     checked = False
 
                                     flag = 1
-                                    break
+                                group_message = {'id': groupID, 'name': name, 'owner': owner.username,
+                                                     'state': state, 'role': 1,'checked':checked,
+                                                     'needLocation': needLocation, 'needFace': needFace
+                                                     }
+                                data.append(group_message)
+                                break
 
                         if flag == 0:
 
@@ -573,6 +585,7 @@ def grouplist(request):
 
 
 # 创建group
+@ajax_post_only
 def groupadd(request):
     error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
@@ -602,6 +615,7 @@ def groupadd(request):
 
 
 #加入群组
+@ajax_post_only
 def groupjoin(request):
     error = []
 
@@ -609,12 +623,18 @@ def groupjoin(request):
     if user.userType == 0:
         id = request.POST.get('id')
         group = models.group.objects.get_or_none(groupID=id)
+        checks = models.check.objects.filter(groupID=id)
         if group.member == '':
             group.member = group.member+user.username
         else:
             group.member = group.member +" "+user.username
         group.save()
-
+        if checks.count()!=0:
+            for check in checks:
+                if check.enable == True:
+                    check.members += ' '+user.username
+                    check.save()
+                    break
         return JsonResponse({
             'status':200,
             'message':'success'
@@ -626,7 +646,7 @@ def groupjoin(request):
             'message':error
         })
 
-
+@ajax_post_only
 def groupquit(request):
     error = []
     id = request.POST.get('id')
@@ -656,6 +676,7 @@ def groupquit(request):
         return JsonResponse({'status':202,
                              'message':error
                              })
+@ajax_post_only
 def groupupdate(request):
     error = []
     id = request.POST.get('id')
@@ -699,6 +720,7 @@ def groupupdate(request):
         error.append('group not exist ')
         return JsonResponse({'status':202,
                              'message':error})
+@ajax_post_only
 def groupdelete(request):
     error = []
     id = request.POST.get('id')
@@ -721,6 +743,110 @@ def groupdelete(request):
             'status':202,
             'message':error
         })
+
+def history(request,id):
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    group = models.group.objects.get_or_none(groupID=id)
+    checks = models.check.objects.filter(groupID=id)
+    history_message = []
+    error = []
+    if group is not None:
+        if checks.count()==0:
+            return JsonResponse({
+                'status':200,
+                'message':'OK',
+                'data':history_message
+                }
+                )
+        else :
+            if group.owner.username == user.username:
+                for check in checks:
+                    message={
+                    'id':check.checkID,
+                    'startUpDateTime':str(check.startDate)+'T'+check.startUpTime+'Z',
+                    'duration':check.duration,
+                    }
+                    history_message.append(message)
+                return JsonResponse({
+                'status':200,
+                'message':'OK',
+                'data':history_message
+                }
+                )
+            if user.username in group.member:
+                for check in checks:
+                    message = {
+                        'id': check.checkID,
+                        'startUpDateTime': str(check.startDate)+'T'+check.startUpTime+'Z',
+                        'duration': check.duration,
+                        'checked':user.username in check.results
+                    }
+                    history_message.append(message)
+                return JsonResponse({
+                    'status':200,
+                    'message':'OK',
+                    'data':history_message
+                }
+                )
+            else:
+                error.append('you are not the monitor or member of this group')
+                return JsonResponse({
+                'status': 200,
+                'message': error
+            }
+            )
+    else:
+        error.append('group is not exist')
+        return JsonResponse({
+            'status': 200,
+            'message': error
+        }
+        )
+
+def userhistory(request,groupID,username):
+    user = models.user.objects.get_or_none(username=username)
+    group = models.group.objects.get_or_none(groupID=groupID)
+    checks = models.check.objects.filter(groupID=groupID)
+    history_message = []
+    error = []
+    if group is not None:
+        if checks.count() == 0:
+            return JsonResponse({
+                'status': 200,
+                'message': 'OK',
+                'data': history_message
+            }
+            )
+        else:
+            if user.username in group.member:
+                for check in checks:
+                    message = {
+                        'id': check.checkID,
+                        'startUpDateTime': str(check.startDate)+'T'+check.startUpTime+'Z',
+                        'duration': check.duration,
+                        'checked': user.username in check.results
+                    }
+                    history_message.append(message)
+                return JsonResponse({
+                    'status': 200,
+                    'message': 'OK',
+                    'data': history_message
+                }
+                )
+            else:
+                error.append('you are not the  member of this group')
+                return JsonResponse({
+                    'status': 200,
+                    'message': error
+                }
+                )
+    else:
+            error.append('group is not exist')
+            return JsonResponse({
+                'status': 200,
+                'message': error
+            }
+            )
 
 @never_cache
 def checkstatus(request):
