@@ -119,7 +119,7 @@ CACHES = {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': 'redis://127.0.0.1:6379',
         "OPTIONS": {
-            'DB':1,
+            'DB':0,
             'PASSWORD':'',
             #'PARSER_CLASS': 'redis.connection.HiredisParser',
             'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
@@ -152,6 +152,16 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+
+#celery settings
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['application/json',]
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
 
 
 # Static files (CSS, JavaScript, Images)

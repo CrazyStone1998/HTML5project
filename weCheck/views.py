@@ -10,6 +10,7 @@ from weCheck import models
 from common.auth.userSystem import userSystem
 from common.decorator.ajax_post_only import ajax_post_only
 from django.views.decorators.cache import never_cache
+from weCheck.tasks import schedule_open_check,schedule_close_check
 import math
 import os
 import time
@@ -91,30 +92,38 @@ def register(request):
     if username is None or passwd is None:
         error.append('The username&passwd cannot be empty')
         # 获取并判断 用户名是否存在
-    elif not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():
-
-        passwd   = make_password(passwd)
-        name     = request.POST.get('name')
-        img      = request.FILES.get('profile')
-        userType = request.POST.get('userType')
-        profile  = settings.ICON_URL+''+username+'.jpg'
-        # 将 用户 大脸照 写入 本地文件中
-        imgPath  = os.path.join(settings.STATIC_ROOT,'weCheck','img',username+'.jpg')
-        # 判断用户 大脸照 是否存在 若存在 重写
-        if os.path.exists(imgPath):
-            os.remove(imgPath)
-        with open(imgPath,'wb+') as f:
-            for chunk in img.chunks():
-                f.write(chunk)
-        # 调用 model类的 新建对象方法 存储用户对象
-        models.user.userObject(username,passwd,name,profile,userType,)
-        # 返回 json
-        return JsonResponse({
-                             'status':200,
-                             'message':'OK'
-                                        })
     else:
-        error.append('Username already exists')
+        img = request.FILES.get('profile')
+        # 检测用户 大脸照是否为人脸
+        result = BaiduAPI.facerecognize(img.read())
+        # 用户大脸照 判定成功
+        if result['result'] == 'SUCCESS':
+            if not models.user.objects.filter(Q(username=username)&Q(isDelete=False)).exists():
+
+                passwd   = make_password(passwd)
+                name     = request.POST.get('name')
+                userType = request.POST.get('userType')
+                profile  = settings.ICON_URL+''+username+'.jpg'
+                # 将 用户 大脸照 写入 本地文件中
+                imgPath  = os.path.join(settings.STATIC_ROOT,'weCheck','img',username+'.jpg')
+                # 判断用户 大脸照 是否存在 若存在 重写
+                if os.path.exists(imgPath):
+                    os.remove(imgPath)
+                with open(imgPath,'wb+') as f:
+                    for chunk in img.chunks():
+                        f.write(chunk)
+                # 调用 model类的 新建对象方法 存储用户对象
+                models.user.userObject(username,passwd,name,profile,userType,)
+                # 返回 json
+                return JsonResponse({
+                                     'status':200,
+                                     'message':'OK'
+                                                })
+            else:
+                error.append('Username already exists')
+        else:
+            # 用户大脸照 判定失败
+            error.append(result['msg'])
     return JsonResponse({
             'status':202,
             'message':error,
@@ -426,11 +435,9 @@ def grouplist(request):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     data = []
     group_message = {}
-
     if user is not None:
         if user.userType == 1:
             groups = models.group.objects.filter(owner=user)
-            print(groups)
             if groups.count()!=0:
                 for group in groups:
                     flag = 0
@@ -471,7 +478,7 @@ def grouplist(request):
                                                      'state': state, 'role': 2, 'needLocation': needLocation,
                                                      'needFace': needFace}
                                 data.append(group_message)
-                        #没有计划开启时
+                        #没有当前计划时
                         if flag == 0:
                             for member in members:
                                 mem = models.user.objects.get_or_none(username=member)
@@ -690,7 +697,6 @@ def groupupdate(request):
             needFace = request.POST.get('needFace',group.needFace)
         #    print(isinstance(needLocation,'a'))
             if needLocation == 'true':
-               # print(1)
                 lng = request.POST.get('lng',group.lng)
                 lat = request.POST.get('lat',group.lat)
                 effectiveDistance = request.POST.get('effectiveDistance',group.effectiveDistance)
@@ -1131,9 +1137,9 @@ def schedule(request):
 
 @ajax_post_only
 def scheduleadd(request):
-    error=[]
+    error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
-    username=user.username
+    username = user.username
     groupid = request.POST.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=username)
     g=None
@@ -1153,12 +1159,13 @@ def scheduleadd(request):
                 "data":a.planID
             })
 
-        else:#计划开启状态
-            #查找与之相冲突的计划
-            #先查找改组现在开启的计划
+        else:
+            # 计划开启状态
+            # 查找与之相冲突的计划
+            # 先查找改组现在开启的计划
             checkList = models.checkPlan.objects.filter(groupID__exact=g).filter(enable__exact=True)#这是本群开启的其他计划
-            flag = False#假设这些计划都不冲突
-            #如果这些计划冲突必须满足点：1.有相同的周天 2.当前计划的开启时间+持续时间>原有计划的开始时间 或者原有计划的开始时间+持续时间>当前计划的开始时间
+            flag = False# 假设这些计划都不冲突
+            # 如果这些计划冲突必须满足点：1.有相同的周天 2.当前计划的开启时间+持续时间>原有计划的开始时间 或者原有计划的开始时间+持续时间>当前计划的开始时间
             weekday=repeat.split(",")
             for w in weekday:
                 for che in checkList:
@@ -1188,18 +1195,20 @@ def scheduleadd(request):
                 nowdate = datetime.date.today()
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
-                    check_thisday=models.check.objects.filter(enable__exact=True)
+                    check_thisday=models.check.objects.filter(enable__exact=True).filter(duration__exact=1000).filter(groupID__exact=g)
                     if check_thisday.count()!=0:
-                        nowtime=str(time.strftime('%H:%M', time.localtime(time.time())))
-                        s1="20160916"+nowtime+":00"
+                        nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
+                        s1 = "20160916"+nowtime+":00"
                         t1 = time.strptime(s1, '%Y%m%d%H:%M:%S')
-                        ti1=time.mktime(t1)
-                        s2="20160916"+startUpTime+":00"
+                        ti1 = time.mktime(t1)
+                        s2 = "20160916"+startUpTime+":00"
                         t2 = time.strptime(s2, '%Y%m%d%H:%M:%S')
-                        ti2=time.mktime(t2)
-                        if ti1>ti2 :
+                        ti2 = time.mktime(t2)
+                        if ti1 > ti2:
                             a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
-                            return  JsonResponse({
+                            # 开启 周期计划
+                            schedule_open_check(a.planID,g,startUpTime,duration,repeat)
+                            return JsonResponse({
                                 "status": 200,
                                 "message": "ok",
                                 "data": a.planID
@@ -1242,9 +1251,9 @@ def scheduleupdate(request):
     error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username = user.username
-    scheduleId= request.POST.get('scheduleId')
+    scheduleId = request.POST.get('scheduleId')
     check_plan = models.checkPlan.objects.get(planID=scheduleId)
-    check_plan_id=check_plan.planID
+    check_plan_id = check_plan.planID
     groupId=request.POST.get('id',check_plan.groupID.groupID)
     startUpTime = str(request.POST.get('startUpTime', check_plan.startUpTime))
     duration = int(request.POST.get('duration', check_plan.duration))
@@ -1273,6 +1282,10 @@ def scheduleupdate(request):
             check_plan.repeat=repeat
             check_plan.enable=False
             check_plan.save()
+
+            # 关闭 周期任务计划
+            schedule_close_check(scheduleId)
+
             return JsonResponse({
                 "status": 200,
                 "message": 'ok',
@@ -1318,22 +1331,25 @@ def scheduleupdate(request):
                 nowdate = datetime.date.today()
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
-                    check_thisday=models.check.objects.filter(enable__exact=True)
-                    if check_thisday.count()!=0:
-                        nowtime=str(time.strftime('%H:%M', time.localtime(time.time())))
-                        s1="20160916"+nowtime+":00"
+                    check_thisday=models.check.objects.filter(enable__exact=True).filter(groupID__exact=g).filter(duration__exact=1000)
+                    if check_thisday.count() != 0:
+                        nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
+                        s1 = "20160916"+nowtime+":00"
                         t1 = time.strptime(s1, '%Y%m%d%H:%M:%S')
-                        ti1=time.mktime(t1)
-                        s2="20160916"+startUpTime+":00"
+                        ti1 = time.mktime(t1)
+                        s2 = "20160916"+startUpTime+":00"
                         t2 = time.strptime(s2, '%Y%m%d%H:%M:%S')
-                        ti2=time.mktime(t2)
-                        if ti1>ti2 :
+                        ti2 = time.mktime(t2)
+                        if ti1 > ti2:
                             check_plan.groupID=g
                             check_plan.startUpTime=startUpTime
                             check_plan.duration=duration
                             check_plan.repeat=repeat
                             check_plan.enable=True
                             check_plan.save()
+                            # 开启周期签到计划
+                            schedule_open_check(scheduleId,g,startUpTime,duration,repeat)
+
                             return  JsonResponse({
                                 "status": 200,
                                 "message": "ok",
@@ -1395,8 +1411,8 @@ def scheduledelete(request):
         c = i
     groupID=c.groupID.groupID
     group=models.group.objects.filter(groupID__exact=groupID).filter(owner__exact=username)
-    if group.count()!=0:
-        if check_plan.count()!=0:
+    if group.count() != 0:
+        if check_plan.count() != 0:
             check_plan.delete()
             return JsonResponse({
                 "status":200,
@@ -1410,6 +1426,97 @@ def scheduledelete(request):
             })
     else:
         error.append("You are not the owner of the group or the group is not exist")
+        return JsonResponse({
+            "status": 202,
+            "message": error
+        })
+
+#获取历史记录中的某条记录的信息(m)
+def record(request,id):
+    error=[]
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username=user.username
+    checkid = id
+    check= models.check.objects.get(checkID=checkid)
+    group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID)
+    g=None
+    if group.count()!=0:
+        if check.enable is True:
+            error.append("该签到正在进行中，请稍后查看")
+            return JsonResponse({
+                "status": 202,
+                "message": error
+            })
+        else:
+            starttime = str(check.startDate) + "T" + check.startUpTime + "Z"
+            memeber = check.members.split(" ")
+            result = check.members.strip(" ,").split(",")
+            doneList = []
+            missedList = []
+            for m in memeber:
+                m_name = (models.user.objects.get(username=m)).name
+                s = {
+                    "username": m,
+                    "name": m_name,
+                }
+                if m in result:
+                    doneList.append(s)
+                else:
+                    missedList.append(s)
+            return JsonResponse({
+                "status": 200,
+                "message": "OK",
+                "data": {
+                    "id": checkid,
+                    "startUpTime": starttime,
+                    "duration": check.duration,
+                    "done": doneList,
+                    "missed": missedList
+                }
+            })
+    else:
+        error.append("你不是该群的管理员，或者该群不存在")
+        return JsonResponse({
+            "status": 202,
+            "message": error
+        })
+
+
+
+#获取群体内某个成员的签到历史记录(m)
+def member_history(request,group_id,user_name):
+    error = []
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username = user.username
+    groupid = group_id
+    membername = user_name
+    group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=username)
+    if group.count()!=0:
+        g= None
+        for i in group:
+            g=i
+        record_list=[]
+        checklist=models.check.objects.filter(groupID__exact=g).filter(members__contains=membername)
+        for che in checklist:
+            flag=None
+            if membername in che.results:
+                flag=True
+            else:
+                flag=False
+            s={
+                "id": che.checkID,
+                "startUpTime":str(che.startDate)+"T"+che.startUpTime+"Z",
+                "duration": che.duration,
+                "checked":flag,
+            }
+            record_list.append(s)
+        return  JsonResponse({
+            "status": 200,
+            "message": "OK",
+            "data":record_list
+        })
+    else:
+        error.append("你不是该群的管理员，或者该群不存在")
         return JsonResponse({
             "status": 202,
             "message": error

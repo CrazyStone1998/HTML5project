@@ -37,15 +37,37 @@ def faceContrast(imageRequest,imageDatabase):
     content = eval(str(response.read(), encoding='utf-8'))
     if content['error_msg'] == 'SUCCESS':
         if content['result']['score'] >= 80:
-            print(1)
             result['result'] = 'SUCCESS'
         else:
-            print(2)
             result['result'] = 'FAILED'
             result['msg'] = 'undermatching'
     else:
-        print(3)
         result['result'] = 'FAILED'
         result['msg'] = content['error_msg']
 
+    return result
+
+def facerecognize(imageRegister):
+    '''
+    人脸检测与属性分析
+    '''
+
+    request_url = "https://aip.baidubce.com/rest/2.0/face/v3/detect"
+    imageRegister_base64 = base64.b64encode(imageRegister)
+    params = json.dumps(
+        {"image": str(imageRegister_base64, 'utf-8'), "image_type": "BASE64","face_field": "faceshape,facetype",},
+    ).encode('utf-8')
+    access_token = eval(str(accessToken(),encoding='utf-8'))['access_token']
+    request_url = request_url + "?access_token=" + access_token
+    request = urllib.request.Request(url=request_url, data=params)
+    request.add_header('Content-Type', 'application/json')
+    response = urllib.request.urlopen(request)
+    content = json.loads(str(response.read(),encoding='utf-8'))
+    result = {}
+    if content['error_msg'] == 'SUCCESS':
+        if content['result']['face_list'][0]['face_probability'] >= 0.5:
+            result['result'] = 'SUCCESS'
+    else:
+        result['result'] = 'FAILED'
+        result['msg'] = 'Face mismatch'
     return result

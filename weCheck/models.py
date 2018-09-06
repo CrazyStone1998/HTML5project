@@ -73,6 +73,12 @@ class group(models.Model):
     name      = models.CharField(max_length=20)
     owner     = models.ForeignKey(user, to_field='username', on_delete=models.CASCADE)
     member    = models.CharField(max_length=1000)
+    needLocation      = models.BooleanField(default=False)
+    needFace          = models.BooleanField(default=False)
+
+    lng               = models.FloatField(default=0)
+    lat               = models.FloatField(default=0)
+    effectiveDistance = models.FloatField(default=0)
     isDelete    = models.BooleanField(default=False)
     needLocation      = models.BooleanField(default=False)
     needFace          = models.BooleanField(default=False)
