@@ -1081,7 +1081,7 @@ def scheduleadd(request):
                 nowdate = datetime.date.today()
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
-                    check_thisday=models.check.objects.filter(enable__exact=True).filter(groupID__exact=g)
+                    check_thisday=models.check.objects.filter(enable__exact=True).filter(duration__exact=1000).filter(groupID__exact=g)
                     if check_thisday.count()!=0:
                         nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
                         s1 = "20160916"+nowtime+":00"
@@ -1217,7 +1217,7 @@ def scheduleupdate(request):
                 nowdate = datetime.date.today()
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
-                    check_thisday=models.check.objects.filter(enable__exact=True)
+                    check_thisday=models.check.objects.filter(enable__exact=True).filter(groupID__exact=g).filter(duration__exact=1000)
                     if check_thisday.count() != 0:
                         nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
                         s1 = "20160916"+nowtime+":00"
@@ -1312,6 +1312,97 @@ def scheduledelete(request):
             })
     else:
         error.append("You are not the owner of the group or the group is not exist")
+        return JsonResponse({
+            "status": 202,
+            "message": error
+        })
+
+#获取历史记录中的某条记录的信息(m)
+def record(request,id):
+    error=[]
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username=user.username
+    checkid = id
+    check= models.check.objects.get(checkID=checkid)
+    group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID)
+    g=None
+    if group.count()!=0:
+        if check.enable is True:
+            error.append("该签到正在进行中，请稍后查看")
+            return JsonResponse({
+                "status": 202,
+                "message": error
+            })
+        else:
+            starttime = str(check.startDate) + "T" + check.startUpTime + "Z"
+            memeber = check.members.split(" ")
+            result = check.members.strip(" ,").split(",")
+            doneList = []
+            missedList = []
+            for m in memeber:
+                m_name = (models.user.objects.get(username=m)).name
+                s = {
+                    "username": m,
+                    "name": m_name,
+                }
+                if m in result:
+                    doneList.append(s)
+                else:
+                    missedList.append(s)
+            return JsonResponse({
+                "status": 200,
+                "message": "OK",
+                "data": {
+                    "id": checkid,
+                    "startUpTime": starttime,
+                    "duration": check.duration,
+                    "done": doneList,
+                    "missed": missedList
+                }
+            })
+    else:
+        error.append("你不是该群的管理员，或者该群不存在")
+        return JsonResponse({
+            "status": 202,
+            "message": error
+        })
+
+
+
+#获取群体内某个成员的签到历史记录(m)
+def member_history(request,group_id,user_name):
+    error = []
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username = user.username
+    groupid = group_id
+    membername = user_name
+    group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=username)
+    if group.count()!=0:
+        g= None
+        for i in group:
+            g=i
+        record_list=[]
+        checklist=models.check.objects.filter(groupID__exact=g).filter(members__contains=membername)
+        for che in checklist:
+            flag=None
+            if membername in che.results:
+                flag=True
+            else:
+                flag=False
+            s={
+                "id": che.checkID,
+                "startUpTime":str(che.startDate)+"T"+che.startUpTime+"Z",
+                "duration": che.duration,
+                "checked":flag,
+            }
+            record_list.append(s)
+        return  JsonResponse({
+            "status": 200,
+            "message": "OK",
+            "data":record_list
+        })
+    else:
+        error.append("你不是该群的管理员，或者该群不存在")
         return JsonResponse({
             "status": 202,
             "message": error

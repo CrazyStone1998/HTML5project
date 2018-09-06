@@ -24,6 +24,8 @@ urlpatterns = [
     re_path(r'^schedule/add/*$',    views.scheduleadd,    name='scheduleadd'),     # access: manager
     re_path(r'^schedule/update/*$', views.scheduleupdate, name='scheduleupdate'),  # access: manager
     re_path(r'^schedule/delete/*$', views.scheduledelete, name='scheduledelete'),  # access: manager
-
+    re_path(r'^group/(?P<group_id>[\d\w]{6})/user/(?P<user_name>.+)/*$', views.member_history,  name='member_history'),# access: manager
+    re_path(r'^record/(?P<id>[\d]+)/*$',views.record,name='record'),# access: manager
 
 ]
+#'^group/(?P<groupID>[\d\w]{6})/user/(?P<username>.+)/*$
