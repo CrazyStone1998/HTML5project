@@ -80,7 +80,6 @@ class group(models.Model):
     lat               = models.FloatField(default=0)
     effectiveDistance = models.FloatField(default=0)
     isDelete    = models.BooleanField(default=False)
-
     objects = wecheckManager()
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-from weCheck.common import BaiduAPI
+from weCheck.common import  BaiduAPI
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
@@ -592,6 +592,7 @@ def grouplist(request):
 
 
 # 创建group
+@ajax_post_only
 def groupadd(request):
     error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
@@ -621,6 +622,7 @@ def groupadd(request):
 
 
 #加入群组
+@ajax_post_only
 def groupjoin(request):
     error = []
 
@@ -628,12 +630,18 @@ def groupjoin(request):
     if user.userType == 0:
         id = request.POST.get('id')
         group = models.group.objects.get_or_none(groupID=id)
+        checks = models.check.objects.filter(groupID=id)
         if group.member == '':
             group.member = group.member+user.username
         else:
             group.member = group.member +" "+user.username
         group.save()
-
+        if checks.count()!=0:
+            for check in checks:
+                if check.enable == True:
+                    check.members += ' '+user.username
+                    check.save()
+                    break
         return JsonResponse({
             'status':200,
             'message':'success'
@@ -645,13 +653,12 @@ def groupjoin(request):
             'message':error
         })
 
-
+@ajax_post_only
 def groupquit(request):
     error = []
     id = request.POST.get('id')
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     group = models.group.objects.get_or_none(groupID=id)
-   # group_check = models.check.objects.get_or_none(groupID=id)
     if user.userType == 0 and group is not None:
         member = group.member
         index = member.find(user.username)
@@ -675,6 +682,7 @@ def groupquit(request):
         return JsonResponse({'status':202,
                              'message':error
                              })
+@ajax_post_only
 def groupupdate(request):
     error = []
     id = request.POST.get('id')
@@ -717,6 +725,7 @@ def groupupdate(request):
         error.append('group not exist ')
         return JsonResponse({'status':202,
                              'message':error})
+@ajax_post_only
 def groupdelete(request):
     error = []
     id = request.POST.get('id')
@@ -739,6 +748,110 @@ def groupdelete(request):
             'status':202,
             'message':error
         })
+
+def history(request,id):
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    group = models.group.objects.get_or_none(groupID=id)
+    checks = models.check.objects.filter(groupID=id)
+    history_message = []
+    error = []
+    if group is not None:
+        if checks.count()==0:
+            return JsonResponse({
+                'status':200,
+                'message':'OK',
+                'data':history_message
+                }
+                )
+        else :
+            if group.owner.username == user.username:
+                for check in checks:
+                    message={
+                    'id':check.checkID,
+                    'startUpDateTime':str(check.startDate)+'T'+check.startUpTime+'Z',
+                    'duration':check.duration,
+                    }
+                    history_message.append(message)
+                return JsonResponse({
+                'status':200,
+                'message':'OK',
+                'data':history_message
+                }
+                )
+            if user.username in group.member:
+                for check in checks:
+                    message = {
+                        'id': check.checkID,
+                        'startUpDateTime': str(check.startDate)+'T'+check.startUpTime+'Z',
+                        'duration': check.duration,
+                        'checked':user.username in check.results
+                    }
+                    history_message.append(message)
+                return JsonResponse({
+                    'status':200,
+                    'message':'OK',
+                    'data':history_message
+                }
+                )
+            else:
+                error.append('you are not the monitor or member of this group')
+                return JsonResponse({
+                'status': 200,
+                'message': error
+            }
+            )
+    else:
+        error.append('group is not exist')
+        return JsonResponse({
+            'status': 200,
+            'message': error
+        }
+        )
+
+def userhistory(request,groupID,username):
+    user = models.user.objects.get_or_none(username=username)
+    group = models.group.objects.get_or_none(groupID=groupID)
+    checks = models.check.objects.filter(groupID=groupID)
+    history_message = []
+    error = []
+    if group is not None:
+        if checks.count() == 0:
+            return JsonResponse({
+                'status': 200,
+                'message': 'OK',
+                'data': history_message
+            }
+            )
+        else:
+            if user.username in group.member:
+                for check in checks:
+                    message = {
+                        'id': check.checkID,
+                        'startUpDateTime': str(check.startDate)+'T'+check.startUpTime+'Z',
+                        'duration': check.duration,
+                        'checked': user.username in check.results
+                    }
+                    history_message.append(message)
+                return JsonResponse({
+                    'status': 200,
+                    'message': 'OK',
+                    'data': history_message
+                }
+                )
+            else:
+                error.append('you are not the  member of this group')
+                return JsonResponse({
+                    'status': 200,
+                    'message': error
+                }
+                )
+    else:
+            error.append('group is not exist')
+            return JsonResponse({
+                'status': 200,
+                'message': error
+            }
+            )
 
 @never_cache
 def checkstatus(request):
@@ -1082,7 +1195,7 @@ def scheduleadd(request):
                 nowdate = datetime.date.today()
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
-                    check_thisday=models.check.objects.filter(enable__exact=True).filter(groupID__exact=g)
+                    check_thisday=models.check.objects.filter(enable__exact=True).filter(duration__exact=1000).filter(groupID__exact=g)
                     if check_thisday.count()!=0:
                         nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
                         s1 = "20160916"+nowtime+":00"
@@ -1227,7 +1340,7 @@ def scheduleupdate(request):
                 nowdate = datetime.date.today()
                 weekdate = str(nowdate.weekday() + 1)
                 if weekdate in repeat:
-                    check_thisday=models.check.objects.filter(enable__exact=True)
+                    check_thisday=models.check.objects.filter(enable__exact=True).filter(groupID__exact=g).filter(duration__exact=1000)
                     if check_thisday.count() != 0:
                         nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))
                         s1 = "20160916"+nowtime+":00"
@@ -1328,6 +1441,97 @@ def scheduledelete(request):
             })
     else:
         error.append("You are not the owner of the group or the group is not exist")
+        return JsonResponse({
+            "status": 202,
+            "message": error
+        })
+
+#获取历史记录中的某条记录的信息(m)
+def record(request,id):
+    error=[]
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username=user.username
+    checkid = id
+    check= models.check.objects.get(checkID=checkid)
+    group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID)
+    g=None
+    if group.count()!=0:
+        if check.enable is True:
+            error.append("该签到正在进行中，请稍后查看")
+            return JsonResponse({
+                "status": 202,
+                "message": error
+            })
+        else:
+            starttime = str(check.startDate) + "T" + check.startUpTime + "Z"
+            memeber = check.members.split(" ")
+            result = check.members.strip(" ,").split(",")
+            doneList = []
+            missedList = []
+            for m in memeber:
+                m_name = (models.user.objects.get(username=m)).name
+                s = {
+                    "username": m,
+                    "name": m_name,
+                }
+                if m in result:
+                    doneList.append(s)
+                else:
+                    missedList.append(s)
+            return JsonResponse({
+                "status": 200,
+                "message": "OK",
+                "data": {
+                    "id": checkid,
+                    "startUpTime": starttime,
+                    "duration": check.duration,
+                    "done": doneList,
+                    "missed": missedList
+                }
+            })
+    else:
+        error.append("你不是该群的管理员，或者该群不存在")
+        return JsonResponse({
+            "status": 202,
+            "message": error
+        })
+
+
+
+#获取群体内某个成员的签到历史记录(m)
+def member_history(request,group_id,user_name):
+    error = []
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username = user.username
+    groupid = group_id
+    membername = user_name
+    group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=username)
+    if group.count()!=0:
+        g= None
+        for i in group:
+            g=i
+        record_list=[]
+        checklist=models.check.objects.filter(groupID__exact=g).filter(members__contains=membername)
+        for che in checklist:
+            flag=None
+            if membername in che.results:
+                flag=True
+            else:
+                flag=False
+            s={
+                "id": che.checkID,
+                "startUpTime":str(che.startDate)+"T"+che.startUpTime+"Z",
+                "duration": che.duration,
+                "checked":flag,
+            }
+            record_list.append(s)
+        return  JsonResponse({
+            "status": 200,
+            "message": "OK",
+            "data":record_list
+        })
+    else:
+        error.append("你不是该群的管理员，或者该群不存在")
         return JsonResponse({
             "status": 202,
             "message": error
