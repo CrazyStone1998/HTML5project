@@ -84,7 +84,7 @@ DATABASES = {
         'NAME': 'wecheck',
         'USER': 'root',
 
-        'PASSWORD': 'wecheck',
+        'PASSWORD': 'Shijunyu',
         'HOST': 'localhost',
         'POST': '3306',
 
