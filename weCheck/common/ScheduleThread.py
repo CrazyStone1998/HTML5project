@@ -146,20 +146,25 @@ class scheduleThread(threading.Thread):
 
 
     def check_open_close(self,group,duration):
-        print('success')
-        # # 开启一个 新的签到
-        # new = check.checkObject(group=group, duration=duration)
-        # time.sleep(int(duration)*60)
-        # new.enable = False
-        # new.save()
+        # 开启一个 新的签到
+        new = check.checkObject(group=group, duration=duration)
+        # 当前时间
+        now = datetime.datetime.strptime(time.strftime('%Y%m%d%H:%M'), '%Y%m%d%H:%M')
+        dateTarget = now + datetime.timedelta(minutes=int(duration))
+        while True:
+            if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
+                new.enable = False
+                new.save()
+                break
+            else:
+                time.sleep(5)
+
 
 
 def addScheduleThread(name,group,startUpTime,duration,repeat):
 
     thread1 = scheduleThread(name=name,group=group,startUpTime=startUpTime,duration=duration,repeat=repeat)
-    print('-------------%s' % thread1.getName())
     thread1.start()
-    print(threading.enumerate())
 
 def deleteScheduleThread(name):
 
