@@ -85,12 +85,12 @@ def logout(request):
 @ajax_post_only
 def register(request):
     # 错误信息列表
-    error = []
+    error = ''
     # 后台获取并判断用户名和密码 是否为空
     username = request.POST.get('username')
     passwd = request.POST.get('password')
     if username is None or passwd is None:
-        error.append('The username&passwd cannot be empty')
+        error = 'The username&passwd cannot be empty'
         # 获取并判断 用户名是否存在
     else:
         img = request.FILES.get('profile')
@@ -120,10 +120,10 @@ def register(request):
                                      'message':'OK'
                                                 })
             else:
-                error.append('Username already exists')
+                error = 'Username already exists'
         else:
             # 用户大脸照 判定失败
-            error.append(result['msg'])
+            error = result['msg']
     return JsonResponse({
             'status':202,
             'message':error,
@@ -140,13 +140,13 @@ def user_splitter(request,GET=None,POST=None):
     :return:
     '''
     # 错误信息列表
-    error = []
+    error = ''
     if request.method == 'GET' and GET is not None:
         return GET(request)
     elif request.method == 'POST' and POST is not None:
         return POST(request)
     else:
-        error.append('request.method is WRONG')
+        error = 'request.method is WRONG'
 
 @never_cache
 def userGET(request):
@@ -156,7 +156,7 @@ def userGET(request):
     :return:
     '''
     # 错误信息列表
-    error = []
+    error = ''
     print('------------------------------')
     assert request.method == 'GET'
     # 获取用户对象
@@ -176,7 +176,7 @@ def userGET(request):
             }
         })
     else:
-        error.append('user is not exist')
+        error = 'user is not exist'
         return JsonResponse({
             'status': 202,
             'message': error
@@ -190,7 +190,7 @@ def userPOST(request):
     :return:
     '''
     # 错误信息列表
-    error = []
+    error = ''
     assert request.method == 'POST'
 
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
@@ -925,7 +925,7 @@ def checkstatus(request):
 
 @ajax_post_only
 def checkcheck(request):
-    error=[]
+    error=''
     user = models.user.objects.get_or_none(username=userSystem(request).getUserObject())
     username=str(user.username)
     groupid=request.POST.get('id')
@@ -943,7 +943,7 @@ def checkcheck(request):
                 c = ch
                 break
         if flag is False:
-            error.append("The group is not checking")
+            error = "The group is not checking"
             return JsonResponse({
                 "status": 202,
                 "message": error
@@ -952,7 +952,7 @@ def checkcheck(request):
 
             m = c.results
             if username in m:
-                error.append("您已经签到")
+                error = "您已经签到"
                 return JsonResponse({
                     "status": 202,
                     "message": error
@@ -985,7 +985,7 @@ def checkcheck(request):
                                 "message": "ok"
                             })
                         else:
-                            error.append("您不在签到要求范围内")
+                            error = "您不在签到要求范围内"
                             return JsonResponse({
                                 "status": 202,
                                 "message": error
@@ -1005,7 +1005,7 @@ def checkcheck(request):
                                 "message": "ok"
                             })
                         else:
-                            error.append("人脸识别未通过")
+                            error = "人脸识别未通过"
                             return JsonResponse({
                                 "status": 202,
                                 "message": error
@@ -1013,7 +1013,7 @@ def checkcheck(request):
 
 
     else:
-        error.append("group is not exist or you are not the member of the group")
+        error = "group is not exist or you are not the member of the group"
         return JsonResponse({
             "status": 202,
             "message": error
@@ -1022,7 +1022,7 @@ def checkcheck(request):
 #开启即时签到
 @ajax_post_only
 def checkenable(request):
-    error=[]
+    error = ''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     if user is not None:
         ownerID=user.username
@@ -1041,19 +1041,19 @@ def checkenable(request):
                     "message": 'ok'
                 })
             else:#该群组上一次签到还没有结束
-                error.append("the group is checking")
+                error = "the group is checking"
                 return JsonResponse({
                     "status": 202,
                     "message": error
                 })
         else:#是该群组的所有者
-            error.append("you are not the owner of the group or the group not exists")
+            error = "you are not the owner of the group or the group not exists"
             return JsonResponse({
                 "status": 202,
                 "message": error
             })
     else:
-        error.append("user is not exist")
+        error = "user is not exist"
         return JsonResponse({
             "status": 202,
             "message": error
@@ -1061,7 +1061,7 @@ def checkenable(request):
 
 #结束即时签到
 def checkdisable(request):
-    error = []
+    error = ''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     ownerID = user.username
     groupid = request.POST.get('id')
@@ -1082,13 +1082,13 @@ def checkdisable(request):
                 "message": "ok"
             })
         else:
-            error.append("该群组没有正在进行的签到")
+            error = "该群组没有正在进行的签到"
             return JsonResponse({
                 "status": 202,
                 "message": error
             })
     else:
-        error.append("you are not the owner of the group or the group not exists")
+        error = "you are not the owner of the group or the group not exists"
         return JsonResponse({
             "status": 202,
             "message": error
@@ -1099,13 +1099,13 @@ def checkdisable(request):
 
 @never_cache
 def schedule(request):
-    error = []
+    error = ''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
 
-    username=user.username#获取该用户的用户名称
+    username = user.username#获取该用户的用户名称
     groupid = request.GET.get('id')
     group = models.group.objects.filter(groupID__exact=groupid).filter(Q(member__contains=username)  |  Q(owner__exact=username))#获取该群组，并且检查是否包含该用户
-    g=None
+    g = None
 
     for i in group:
         g = i
@@ -1127,7 +1127,7 @@ def schedule(request):
             "data": planlist_request
         })
     else:
-        error.append("you are not the member of the group or the group is not exists")
+        error = "you are not the member of the group or the group is not exists"
         return JsonResponse({
             "status": 202,
             "message": error
@@ -1136,7 +1136,7 @@ def schedule(request):
 
 @ajax_post_only
 def scheduleadd(request):
-    error = []
+    error = ''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username = user.username
     groupid = request.POST.get('id')
@@ -1152,7 +1152,6 @@ def scheduleadd(request):
     if group.count()!=0:
         if enable=="false":#计划关闭状态可以加入
             a=models.checkPlan.checkPlanObejct(g,startUpTime,duration,repeat,False)
-            print('执行到这里')
             return JsonResponse({
                 "status": 200,
                 "message": 'ok',
@@ -1186,7 +1185,7 @@ def scheduleadd(request):
                 if(flag==True):
                     break
             if(flag==True):
-                error.append("您当前为该群组设置的签到计划，与该群已有签到计划冲突")
+                error = "您当前为该群组设置的签到计划，与该群已有签到计划冲突"
                 return JsonResponse({
                     "status": 202,
                     "message": error
@@ -1216,16 +1215,14 @@ def scheduleadd(request):
                                 "data": a.planID
                             })
                         else:
-                            error.append("您当前为该群组设置的签到计划,与该群当前开启的签到可能存在冲突")
+                            error = "您当前为该群组设置的签到计划,与该群当前开启的签到可能存在冲突"
                             return  JsonResponse({
                                 "status": 202,
                                 "message":error
                             })
                     else:
                         a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
-                        print('---执行到这里--')
                         ScheduleThread.addScheduleThread(a.planID, g, startUpTime, duration, repeat)
-                        print('执行完毕')
                         return  JsonResponse({
                             "status":200,
                             "message":"ok",
@@ -1247,7 +1244,7 @@ def scheduleadd(request):
 
 
     else:
-        error.append("you are not the owner of the group or the group is not exist")
+        error = "you are not the owner of the group or the group is not exist"
         return JsonResponse({
             "status": 202,
             "message": error
@@ -1256,7 +1253,7 @@ def scheduleadd(request):
 
 @ajax_post_only
 def scheduleupdate(request):
-    error = []
+    error = ''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username = user.username
     scheduleId = request.POST.get('scheduleId')
@@ -1278,7 +1275,7 @@ def scheduleupdate(request):
         if (enable == (str(
                 check_plan.enable)).lower() and groupId == check_plan.groupID.groupID and startUpTime == check_plan.startUpTime
                 and duration == int(check_plan.duration) and repeat == check_plan.repeat):
-            error.append("您未做任何修改")
+            error = "您未做任何修改"
             return JsonResponse({
                 "status": 202,
                 "message": error
@@ -1292,7 +1289,6 @@ def scheduleupdate(request):
             check_plan.save()
 
             # 关闭 周期任务计划
-            print('-----关闭一个计划 ------')
             ScheduleThread.deleteScheduleThread(scheduleId)
 
             return JsonResponse({
@@ -1330,7 +1326,7 @@ def scheduleupdate(request):
                 if(flag==True):
                     break
             if(flag==True):
-                error.append("您修改后的签到计划，与该群已有签到计划冲突")
+                error = "您修改后的签到计划，与该群已有签到计划冲突"
                 return JsonResponse({
                     "status": 202,
                     "message": error
@@ -1365,7 +1361,7 @@ def scheduleupdate(request):
                             })
                         else:
 
-                            error.append("您修改后的签到计划,与该群当前开启的签到可能存在冲突")
+                            error = "您修改后的签到计划,与该群当前开启的签到可能存在冲突"
                             return  JsonResponse({
                                 "status": 202,
                                 "message":error
@@ -1381,9 +1377,7 @@ def scheduleupdate(request):
                         check_plan.enable=True
                         check_plan.repeat=repeat
                         check_plan.save()
-                        print('---执行到这里--')
                         ScheduleThread.addScheduleThread(scheduleId, g, startUpTime, duration, repeat)
-                        print('执行完毕')
                         return  JsonResponse({
                             "status":200,
                             "message":"OK",
@@ -1396,16 +1390,14 @@ def scheduleupdate(request):
                     check_plan.enable=True
                     check_plan.repeat=repeat
                     check_plan.save()
-                    print('---执行到这里--')
                     ScheduleThread.addScheduleThread(scheduleId, g, startUpTime, duration, repeat)
-                    print('执行完毕')
                     return JsonResponse({
                         "status":200,
                         "message":"ok",
                     })
 
     else:
-        error.append("you are not the owner of the group or the group is not exist")
+        error = "you are not the owner of the group or the group is not exist"
         return JsonResponse({
             "status": 202,
             "message": error
@@ -1418,7 +1410,7 @@ def scheduleupdate(request):
 def scheduledelete(request):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username
-    error=[]
+    error = ''
     scheduleId = request.POST.get('scheduleId')
     check_plan = models.checkPlan.objects.filter(planID__exact=scheduleId)
     c=None
@@ -1434,13 +1426,13 @@ def scheduledelete(request):
                 "message":"ok"
             })
         else:
-            error.append("该签到计划不存在")
+            error = "该签到计划不存在"
             return JsonResponse({
                 "status":202,
                 "message":error
             })
     else:
-        error.append("You are not the owner of the group or the group is not exist")
+        error = "You are not the owner of the group or the group is not exist"
         return JsonResponse({
             "status": 202,
             "message": error
@@ -1448,7 +1440,7 @@ def scheduledelete(request):
 
 #获取历史记录中的某条记录的信息(m)
 def record(request,id):
-    error=[]
+    error = ''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username
     checkid = id
@@ -1457,7 +1449,7 @@ def record(request,id):
     g=None
     if group.count()!=0:
         if check.enable is True:
-            error.append("该签到正在进行中，请稍后查看")
+            error = "该签到正在进行中，请稍后查看"
             return JsonResponse({
                 "status": 202,
                 "message": error
@@ -1490,7 +1482,7 @@ def record(request,id):
                 }
             })
     else:
-        error.append("你不是该群的管理员，或者该群不存在")
+        error = "你不是该群的管理员，或者该群不存在"
         return JsonResponse({
             "status": 202,
             "message": error
@@ -1500,7 +1492,7 @@ def record(request,id):
 
 #获取群体内某个成员的签到历史记录(m)
 def member_history(request,group_id,user_name):
-    error = []
+    error = ''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username = user.username
     groupid = group_id
@@ -1531,7 +1523,7 @@ def member_history(request,group_id,user_name):
             "data":record_list
         })
     else:
-        error.append("你不是该群的管理员，或者该群不存在")
+        error = "你不是该群的管理员，或者该群不存在"
         return JsonResponse({
             "status": 202,
             "message": error
