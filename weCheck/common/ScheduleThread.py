@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from weCheck.models import check
-from datetime import datetime
+import datetime
 import time
 import threading
 import inspect
@@ -46,57 +46,91 @@ class scheduleThread(threading.Thread):
 
     def open_check(self):
 
-        now = datetime.strptime(time.strftime('%H:%M'), '%H:%M')
-        target = datetime.strptime(self.startUpTime, '%H:%M')
-
+        # 当前时间
+        now = datetime.datetime.strptime(time.strftime('%Y%m%d%H:%M'), '%Y%m%d%H:%M')
         # 计算天数
-        weekNow = datetime.now().weekday()
-
+        weekNow = datetime.datetime.now().weekday()
         day = self.caclulate(weekNow, self.repeat)
-
+        # 获取当天 签到开启时间
+        dateTarget = time.strftime('%Y%m%d') + self.startUpTime
+        dateTarget = datetime.datetime.strptime(dateTarget, '%Y%m%d%H:%M')
+        # 计算 日期
         # 计算时间 偏差
-        d = (target - now).days
-        if d < 0:
-            s = day * 24 * 60 * 60 - (now - target).seconds
 
-        else:
-            if weekNow in self.repeat:
-                s = (target - now).seconds
-            else:
-                s = day * 24 * 60 * 60 + (target - now).seconds
-
-        print('沉睡时间%s' % s)
-        # 沉睡
-        time.sleep(s)
-
-        # 唤醒后创建 check
-        self.check_open_close(self.group, self.duration)
+        if (dateTarget-now).days < 0 and weekNow in self.repeat:
+            dateTarget = dateTarget+datetime.timedelta(days=day)
 
         while True:
 
-            now = datetime.strptime(time.strftime('%H:%M'),'%H:%M')
-            target = datetime.strptime(self.startUpTime, '%H:%M')
+            if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
+
+                self.check_open_close(self.group, self.duration)
+                break
+            else:
+                time.sleep(5)
+
+        while True:
 
             # 计算天数
-            weekNow = datetime.now().weekday()
+            weekNow = datetime.datetime.now().weekday()
+            day = self.caclulate(weekNow, self.repeat)
 
-            day = self.caclulate(weekNow,self.repeat)
+            # 获取下次 签到开启时间
+            dateTarget = time.strftime('%Y%m%d') + self.startUpTime
+            dateTarget = datetime.datetime.strptime(dateTarget,'%Y%m%d%H:%M')+datetime.timedelta(days=day)
 
-            # 计算时间 偏差
-            d = (target-now).days
-            if d < 0 :
-                s = day*24*60*60 - (now-target).seconds
+            while True:
 
-            else:
-
-                s = day*24*60*60 + (target-now).seconds
-
-            print('沉睡时间%s' % s)
-            #沉睡
-            time.sleep(s)
-
-            #唤醒后创建 check
-            self.check_open_close(self.group,self.duration)
+                if datetime.datetime.now() == dateTarget.strftime('%Y%m%d%H:%M'):
+                    print('success')
+                    self.check_open_close(self.group, self.duration)
+                    break
+                else:
+                    time.sleep(5)
+        #
+        # # 计算时间 偏差
+        # d = (target - now).days
+        # if d < 0:
+        #     s = day * 24 * 60 * 60 - (now - target).seconds
+        #
+        # else:
+        #     if weekNow in self.repeat:
+        #         s = (target - now).seconds
+        #     else:
+        #         s = day * 24 * 60 * 60 + (target - now).seconds
+        #
+        # print('沉睡时间%s' % s)
+        # # 沉睡
+        # time.sleep(s)
+        #
+        # # 唤醒后创建 check
+        # self.check_open_close(self.group, self.duration)
+        #
+        # while True:
+        #
+        #     now = datetime.strptime(time.strftime('%H:%M'),'%H:%M')
+        #     target = datetime.strptime(self.startUpTime, '%H:%M')
+        #
+        #     # 计算天数
+        #     weekNow = datetime.now().weekday()
+        #
+        #     day = self.caclulate(weekNow,self.repeat)
+        #
+        #     # 计算时间 偏差
+        #     d = (target-now).days
+        #     if d < 0 :
+        #         s = day*24*60*60 - (now-target).seconds
+        #
+        #     else:
+        #
+        #         s = day*24*60*60 + (target-now).seconds
+        #
+        #     print('沉睡时间%s' % s)
+        #     #沉睡
+        #     time.sleep(s)
+        #
+        #     #唤醒后创建 check
+        #     self.check_open_close(self.group,self.duration)
 
 
     def caclulate(self,weekday,repeat):
@@ -113,11 +147,11 @@ class scheduleThread(threading.Thread):
 
     def check_open_close(self,group,duration):
         print('success')
-        # 开启一个 新的签到
-        new = check.checkObject(group=group, duration=duration)
-        time.sleep(int(duration)*60)
-        new.enable = False
-        new.save()
+        # # 开启一个 新的签到
+        # new = check.checkObject(group=group, duration=duration)
+        # time.sleep(int(duration)*60)
+        # new.enable = False
+        # new.save()
 
 
 def addScheduleThread(name,group,startUpTime,duration,repeat):
