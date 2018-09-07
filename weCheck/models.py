@@ -122,11 +122,11 @@ class check(models.Model):
 
 
     @classmethod
-    def checkObject(cls, group, duration=1000,startUpTime = str(time.strftime('%H:%M')),results=" "):
+    def checkObject(cls, group, duration=1000,startUpTime='',results=" "):
         new = check()
         m=str(group.member)
         new.groupID = group
-        new.startUpTime = startUpTime
+        new.startUpTime =startUpTime
         new.duration = duration
         new.results = results
         new.members = m

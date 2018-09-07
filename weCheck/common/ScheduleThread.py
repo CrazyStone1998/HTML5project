@@ -81,7 +81,6 @@ class scheduleThread(threading.Thread):
             while True:
 
                 if datetime.datetime.now() == dateTarget.strftime('%Y%m%d%H:%M'):
-                    print('success')
                     self.check_open_close(self.group, self.duration)
                     break
                 else:
