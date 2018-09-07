@@ -29,7 +29,7 @@ class userSystem(object):
         :return:
         '''
 
-        error = []
+        error = None
 
         # 获取登陆对象
         userlogin = models.user.objects.get_or_none(username=username)
@@ -45,10 +45,10 @@ class userSystem(object):
                 return error
 
             else:
-                error.append('The password is not right')
+                error = 'The password is not right'
         else:
             # 用户对象 不存在
-            error.append('user matching query does not exist.')
+            error = 'user matching query does not exist.'
 
         return error
 
