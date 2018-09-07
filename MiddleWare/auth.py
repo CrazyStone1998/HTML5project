@@ -30,7 +30,8 @@ class authenticationMiddleWare(MiddlewareMixin):
                     'message': context,
                 })
             elif request.session.has_key('sessionID') and request.session.has_key('token') \
-                    and 'register' not in request.path and 'logout' not in request.path:
+                    and 'register' not in request.path and 'logout' not in request.path \
+                    and 'login' not in request.path:
                 try:
                     #用户拥有session，登陆验证
                     user = userSystem(request)
