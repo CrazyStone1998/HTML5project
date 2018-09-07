@@ -1,6 +1,6 @@
 # coding=utf-8
 
-# from weCheck.models import check
+from weCheck.models import check
 import datetime
 import time
 import threading
@@ -145,19 +145,18 @@ class scheduleThread(threading.Thread):
 
 
     def check_open_close(self,group,duration):
-        print('sucess')
-        # # 开启一个 新的签到
-        # new = check.checkObject(group=group, duration=duration)
-        # # 当前时间
-        # now = datetime.datetime.strptime(time.strftime('%Y%m%d%H:%M'), '%Y%m%d%H:%M')
-        # dateTarget = now + datetime.timedelta(minutes=int(duration))
-        # while True:
-        #     if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
-        #         new.enable = False
-        #         new.save()
-        #         break
-        #     else:
-        #         time.sleep(5)
+        # 开启一个 新的签到
+        new = check.checkObject(group=group, duration=duration)
+        # 当前时间
+        now = datetime.datetime.strptime(time.strftime('%Y%m%d%H:%M'), '%Y%m%d%H:%M')
+        dateTarget = now + datetime.timedelta(minutes=int(duration))
+        while True:
+            if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
+                new.enable = False
+                new.save()
+                break
+            else:
+                time.sleep(5)
 
 
 
@@ -165,7 +164,6 @@ def addScheduleThread(name,group,startUpTime,duration,repeat):
 
     thread1 = scheduleThread(name=name,group=group,startUpTime=startUpTime,duration=duration,repeat=repeat)
     thread1.start()
-    pool.append(thread1)
 
 def deleteScheduleThread(name):
 
