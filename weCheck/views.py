@@ -220,7 +220,6 @@ def userPOST(request):
 
 @never_cache
 def group(request):
-    error = []
     id = request.GET.get('id')
     group = models.group.objects.get_or_none(groupID=id)
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
@@ -422,16 +421,14 @@ def group(request):
                                  },
                                  })
     else:
-        error.append('group is not exist')
         return JsonResponse({
             'status': 202,
-            'message': error
+            'message':'group is not exist'
         })
 
 
 @never_cache
 def grouplist(request):
-    error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     data = []
     group_message = {}
@@ -583,10 +580,8 @@ def grouplist(request):
                               })
 
     else:
-        error.append("user not exist ")
         return JsonResponse({'status':202,
-                             'message':error,
-                             'data':group_message
+                             'message':"user not exist "
                              })
 
 
@@ -594,7 +589,6 @@ def grouplist(request):
 # 创建group
 @ajax_post_only
 def groupadd(request):
-    error = []
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     if user.userType == 1:
         name = request.POST.get('name')
@@ -608,23 +602,20 @@ def groupadd(request):
                                  'data':id,
             })
         else:
-            error.append('group id repeat,create group fault')
             return JsonResponse({
                 'status':202,
-                'message':error
+                'message':'group id repeat,create group fail'
             })
     else:
-        error.append('user type error,must be monitor')
         return JsonResponse({
             'status':403,
-            'message':error
+            'message':'user type error,must be monitor'
         })
 
 
 #加入群组
 @ajax_post_only
 def groupjoin(request):
-    error = []
 
     user = models.user.objects.get_or_none(username = userSystem(request).getUsername())
     if user.userType == 0:
@@ -647,15 +638,13 @@ def groupjoin(request):
             'message':'success'
         })
     else:
-        error.append('user type error, must be user ')
         return JsonResponse({
             'status':403,
-            'message':error
+            'message':'user type error, must be user '
         })
 
 @ajax_post_only
 def groupquit(request):
-    error = []
     id = request.POST.get('id')
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     group = models.group.objects.get_or_none(groupID=id)
@@ -678,13 +667,11 @@ def groupquit(request):
                                  'message':'success'
                                  })
     else :
-        error.append('user type error you must be user or group id error group not exist')
         return JsonResponse({'status':202,
-                             'message':error
+                             'message':'user type error you must be user or group id error group not exist'
                              })
 @ajax_post_only
 def groupupdate(request):
-    error = []
     id = request.POST.get('id')
     group = models.group.objects.get_or_none(groupID=id)
     user = models.user.objects.get_or_none(username = userSystem(request).getUsername())
@@ -717,17 +704,14 @@ def groupupdate(request):
                              'message':'success'
                              })
         else:
-            error.append('user type error,must be group monitor')
             return JsonResponse({'status':403,
-                                 'message':error
+                                 'message':'user type error,must be group monitor'
                                  })
     else:
-        error.append('group not exist ')
         return JsonResponse({'status':202,
-                             'message':error})
+                             'message':'group not exist '})
 @ajax_post_only
 def groupdelete(request):
-    error = []
     id = request.POST.get('id')
     group = models.group.objects.get_or_none(groupID=id)
     user = models.user.objects.get_or_none(username = userSystem(request).getUsername())
@@ -737,16 +721,14 @@ def groupdelete(request):
             return JsonResponse({'status':200,
                                  'message':'success'})
         else:
-            error.append('user type error ,must be group monitor')
             return JsonResponse({
                 'status':403,
-                'message':error
+                'message':'user type error ,must be group monitor'
             })
     else:
-        error.append('group not exist')
         return JsonResponse({
             'status':202,
-            'message':error
+            'message':'group not exist'
         })
 
 def history(request,id):
@@ -754,7 +736,6 @@ def history(request,id):
     group = models.group.objects.get_or_none(groupID=id)
     checks = models.check.objects.filter(groupID=id)
     history_message = []
-    error = []
     if group is not None:
         if checks.count()==0:
             return JsonResponse({
@@ -794,17 +775,15 @@ def history(request,id):
                 }
                 )
             else:
-                error.append('you are not the monitor or member of this group')
                 return JsonResponse({
                 'status': 200,
-                'message': error
+                'message': 'you are not the monitor or member of this group'
             }
             )
     else:
-        error.append('group is not exist')
         return JsonResponse({
             'status': 200,
-            'message': error
+            'message': 'group is not exist'
         }
         )
 
@@ -813,7 +792,6 @@ def userhistory(request,groupID,username):
     group = models.group.objects.get_or_none(groupID=groupID)
     checks = models.check.objects.filter(groupID=groupID)
     history_message = []
-    error = []
     if group is not None:
         if checks.count() == 0:
             return JsonResponse({
@@ -839,20 +817,17 @@ def userhistory(request,groupID,username):
                 }
                 )
             else:
-                error.append('you are not the  member of this group')
                 return JsonResponse({
                     'status': 200,
-                    'message': error
+                    'message': 'you are not the  member of this group'
                 }
                 )
     else:
-            error.append('group is not exist')
             return JsonResponse({
                 'status': 200,
-                'message': error
+                'message': 'group is not exist'
             }
             )
-
 @never_cache
 def checkstatus(request):
     user = models.user.objects.get_or_none(username= userSystem(request).getUsername())
@@ -1437,10 +1412,8 @@ def scheduledelete(request):
             "status": 202,
             "message": error
         })
-
 #获取历史记录中的某条记录的信息(m)
 def record(request,id):
-    error = ''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username
     checkid = id
@@ -1449,10 +1422,9 @@ def record(request,id):
     g=None
     if group.count()!=0:
         if check.enable is True:
-            error = "该签到正在进行中，请稍后查看"
             return JsonResponse({
                 "status": 202,
-                "message": error
+                "message": "该签到正在进行中，请稍后查看"
             })
         else:
             starttime = str(check.startDate) + "T" + check.startUpTime + "Z"
@@ -1482,10 +1454,9 @@ def record(request,id):
                 }
             })
     else:
-        error = "你不是该群的管理员，或者该群不存在"
         return JsonResponse({
             "status": 202,
-            "message": error
+            "message": "你不是该群的管理员，或者该群不存在"
         })
 
 
