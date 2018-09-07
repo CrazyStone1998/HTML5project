@@ -1035,7 +1035,7 @@ def checkenable(request):
 
             check=models.check.objects.filter(groupID__exact=g).filter(enable__exact=True)#查看该群组是否还在开启签到中，保证一个群组同一时间只能开启一次签到
             if check.count()==0:#该群组没有处于签到中
-                models.check.checkObject(g)#创建新的签到对象
+                models.check.checkObject(g,startUpTime=time.strftime('%H:%M'))#创建新的签到对象
                 return JsonResponse({
                     "status": 200,
                     "message": 'ok'
