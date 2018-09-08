@@ -18,17 +18,6 @@ import datetime
 import string,random
 
 
-def imgRescource(request):
-    '''
-    # 获取用户 大脸照
-    :param request:
-    :return:
-    '''
-    path = settings.STATIC_ROOT+'/weCheck/img/'+request.path
-    with open(path,'rb') as f:
-        img = f.read()
-    return HttpResponse(img, content_type='image/jpg')
-
 @ajax_post_only
 def login(request):
     '''
