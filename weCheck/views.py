@@ -1437,7 +1437,7 @@ def record(request,checkID):
                 "status": 200,
                 "message": "OK",
                 "data": {
-                    "id": checkId,
+                    "id": checkID,
                     "startUpTime": starttime,
                     "duration": check.duration,
                     "done": doneList,
