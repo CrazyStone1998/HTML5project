@@ -170,7 +170,7 @@ def userGET(request):
             'message': error
         })
 
-
+@never_cache
 def userPOST(request):
     '''
     修改用户信息
