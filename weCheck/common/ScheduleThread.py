@@ -36,11 +36,11 @@ class scheduleThread(threading.Thread):
         self.group = group
         self.startUpTime = startUpTime
         self.duration = duration
-        if repeat != '':
-            self.repeat = [(b - 1) for b in [int(a) for a in repeat.split(',')]]
-        else:
-            self.repeat = repeat
 
+        if repeat == '' :
+            self.repeat = ''
+        else:
+            self.repeat = [(b - 1) for b in [int(a) for a in repeat.split(',')]]
 
 
     def run(self):
