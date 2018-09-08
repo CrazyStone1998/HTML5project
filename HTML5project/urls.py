@@ -20,7 +20,7 @@ from weCheck.views import imgRescource
 urlpatterns = [
 
     path('admin/', admin.site.urls),
-    re_path(r'^[^/]*\.jpg$', imgRescource, name='imgRescource'),
+    re_path(r'^[^/]*\.jpg/*$', imgRescource, name='imgRescource'),
     path('api/v1/', include('weCheck.urls', namespace='weCheck'))
 ]
 
