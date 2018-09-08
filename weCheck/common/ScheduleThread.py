@@ -145,7 +145,7 @@ class scheduleThread(threading.Thread):
 
     def check_open_close(self,group,duration):
         # 开启一个 新的签到
-        new = check.checkObject(group=group, duration=duration)
+        new = check.checkObject(group=group,startUpTime=self.startUpTime,duration=duration)
         # 当前时间
         now = datetime.datetime.strptime(time.strftime('%Y%m%d%H:%M'), '%Y%m%d%H:%M')
         dateTarget = now + datetime.timedelta(minutes=int(duration))
