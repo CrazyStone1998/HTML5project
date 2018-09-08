@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 from weCheck.common import  BaiduAPI
-from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from HTML5project import settings
