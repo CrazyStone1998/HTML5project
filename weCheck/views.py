@@ -92,7 +92,7 @@ def register(request):
                 passwd   = make_password(passwd)
                 name     = request.POST.get('name')
                 userType = request.POST.get('userType')
-                profile  = settings.ICON_URL+''+username+'.jpg'
+                profile  = settings.ICON_URL+'static/weCheck/img/'+username+'.jpg'
                 # 将 用户 大脸照 写入 本地文件中
                 imgPath  = os.path.join(settings.STATIC_ROOT,'weCheck','img',username+'.jpg')
                 # 判断用户 大脸照 是否存在 若存在 重写
