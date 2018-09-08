@@ -60,7 +60,6 @@ class scheduleThread(threading.Thread):
             dateTarget = dateTarget+datetime.timedelta(days=day)
 
         while True:
-            print('lll')
             if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
 
                 self.check_open_close(self.group, self.duration)
@@ -84,7 +83,7 @@ class scheduleThread(threading.Thread):
                     self.check_open_close(self.group, self.duration)
                     break
                 else:
-                    time.sleep(5)
+                    time.sleep(1)
         #
         # # 计算时间 偏差
         # d = (target - now).days
@@ -155,7 +154,7 @@ class scheduleThread(threading.Thread):
                 new.save()
                 break
             else:
-                time.sleep(5)
+                time.sleep(1)
 
 
 
