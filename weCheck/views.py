@@ -1253,7 +1253,7 @@ def scheduleupdate(request):
             check_plan.save()
 
             # 关闭 周期任务计划
-            ScheduleThread.deleteScheduleThread(scheduleId)
+            ScheduleThread.deleteScheduleThread(str(scheduleId)+startUpTime)
 
             return JsonResponse({
                 "status": 200,

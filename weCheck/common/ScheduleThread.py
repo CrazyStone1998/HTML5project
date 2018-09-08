@@ -32,7 +32,7 @@ class scheduleThread(threading.Thread):
 
     def __init__(self,name,group,startUpTime,duration,repeat):
         threading.Thread.__init__(self)
-        self.name = name
+        self.name = str(name)+str(startUpTime)
         self.group = group
         self.startUpTime = startUpTime
         self.duration = duration
@@ -60,6 +60,8 @@ class scheduleThread(threading.Thread):
             dateTarget = dateTarget+datetime.timedelta(days=day)
 
         while True:
+            print(time.strftime('%Y%m%d%H:%M'))
+            print(dateTarget.strftime('%Y%m%d%H:%M'))
             if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
 
                 self.check_open_close(self.group, self.duration)
