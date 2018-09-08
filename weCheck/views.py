@@ -188,7 +188,7 @@ def userPOST(request):
     img = request.FILES.get('profile')
     if img:
         # 修改 大脸照
-        user.profile = settings.ICON_URL + 'static/weCheck/img/' + user.username + '.jpg'
+        user.profile = settings.ICON_URL + '' + user.username + '.jpg'
         # 将 用户 大脸照 写入 本地文件中
         imgPath = os.path.join(settings.STATIC_ROOT, 'weCheck', 'img', user.username + '.jpg')
         # 判断用户 大脸照 是否存在 若存在 重写
@@ -1407,7 +1407,6 @@ def scheduledelete(request):
 def record(request,checkID):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username
-    checkid = id
     check= models.check.objects.get(checkID=checkID)
     group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID)
     g=None
