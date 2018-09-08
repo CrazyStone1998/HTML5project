@@ -1407,7 +1407,7 @@ def scheduledelete(request):
 def record(request,checkID):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username
-
+    checkid = id
     check= models.check.objects.get(checkID=checkID)
     group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID)
     g=None
@@ -1437,7 +1437,7 @@ def record(request,checkID):
                 "status": 200,
                 "message": "OK",
                 "data": {
-                    "id": check.checkID,
+                    "id": checkid,
                     "startUpTime": starttime,
                     "duration": check.duration,
                     "done": doneList,
