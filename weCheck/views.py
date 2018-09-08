@@ -828,6 +828,7 @@ def checkstatus(request):
         for done in doneList:
             s ={
                 "groupId":str(done.groupID.groupID),
+                "groupName":str(done.groupID.name),
                 "startUpTime":str(done.startUpTime),
             }
             doneList_request.append(s)
@@ -838,6 +839,7 @@ def checkstatus(request):
 
             s1={
                 "groupId": str(miss.groupID.groupID),
+                "groupName": str(miss.groupID.name),
                 "startUpTime": str(miss.startUpTime),
             }
             missedList_request.append(s1)
@@ -847,6 +849,7 @@ def checkstatus(request):
         for open in openList:
             s={
                 "groupId": str(open.groupID.groupID),
+                "groupName": str(open.groupID.name),
                 "startUpTime": str(open.startUpTime),
             }
             openList_request.append(s)
@@ -1402,11 +1405,11 @@ def scheduledelete(request):
             "message": error
         })
 #获取历史记录中的某条记录的信息(m)
-def record(request,id):
+def record(request,checkID):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username
-    checkid = id
-    check= models.check.objects.get(checkID=checkid)
+
+    check= models.check.objects.get(checkID=checkID)
     group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID)
     g=None
     if group.count()!=0:
@@ -1446,45 +1449,4 @@ def record(request,id):
         return JsonResponse({
             "status": 202,
             "message": "你不是该群的管理员，或者该群不存在"
-        })
-
-
-
-#获取群体内某个成员的签到历史记录(m)
-def member_history(request,group_id,user_name):
-    error = ''
-    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
-    username = user.username
-    groupid = group_id
-    membername = user_name
-    group = models.group.objects.filter(groupID__exact=groupid).filter(owner__exact=username)
-    if group.count()!=0:
-        g= None
-        for i in group:
-            g=i
-        record_list=[]
-        checklist=models.check.objects.filter(groupID__exact=g).filter(members__contains=membername)
-        for che in checklist:
-            flag=None
-            if membername in che.results:
-                flag=True
-            else:
-                flag=False
-            s={
-                "id": che.checkID,
-                "startUpTime":str(che.startDate)+"T"+che.startUpTime+"Z",
-                "duration": che.duration,
-                "checked":flag,
-            }
-            record_list.append(s)
-        return  JsonResponse({
-            "status": 200,
-            "message": "OK",
-            "data":record_list
-        })
-    else:
-        error = "你不是该群的管理员，或者该群不存在"
-        return JsonResponse({
-            "status": 202,
-            "message": error
         })
