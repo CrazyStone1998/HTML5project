@@ -36,6 +36,7 @@ class scheduleThread(threading.Thread):
         self.group = group
         self.startUpTime = startUpTime
         self.duration = duration
+
         if repeat == '' :
             self.repeat = ''
         else:
