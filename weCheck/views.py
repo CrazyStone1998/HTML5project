@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 from weCheck.common import  BaiduAPI
-from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from HTML5project import settings
@@ -1408,7 +1407,7 @@ def scheduledelete(request):
 def record(request,checkID):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username
-
+    checkid = id
     check= models.check.objects.get(checkID=checkID)
     group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID)
     g=None
