@@ -918,7 +918,7 @@ def checkcheck(request):
 
             m = c.results
             if username in m:
-                error = "您已经签到"
+                error = "you have already checked"
                 return JsonResponse({
                     "status": 202,
                     "message": error
@@ -951,7 +951,7 @@ def checkcheck(request):
                                 "message": "ok"
                             })
                         else:
-                            error = "您不在签到要求范围内"
+                            error = "you are not in the area of checking "
                             return JsonResponse({
                                 "status": 202,
                                 "message": error
@@ -971,7 +971,7 @@ def checkcheck(request):
                                 "message": "ok"
                             })
                         else:
-                            error = "人脸识别未通过"
+                            error = "Face recognition is not passed"
                             return JsonResponse({
                                 "status": 202,
                                 "message": error
@@ -1048,7 +1048,7 @@ def checkdisable(request):
                 "message": "ok"
             })
         else:
-            error = "该群组没有正在进行的签到"
+            error = "There is no sign in progress in the group"
             return JsonResponse({
                 "status": 202,
                 "message": error
@@ -1151,7 +1151,7 @@ def scheduleadd(request):
                 if(flag==True):
                     break
             if(flag==True):
-                error = "您当前为该群组设置的签到计划，与该群已有签到计划冲突"
+                error = "Your current schedule for this group is in conflict with the existing schedule"
                 return JsonResponse({
                     "status": 202,
                     "message": error
@@ -1181,7 +1181,7 @@ def scheduleadd(request):
                                 "data": a.planID
                             })
                         else:
-                            error = "您当前为该群组设置的签到计划,与该群当前开启的签到可能存在冲突"
+                            error = "Your current schedule for this group is in conflict with the ongoing check"
                             return  JsonResponse({
                                 "status": 202,
                                 "message":error
@@ -1241,7 +1241,7 @@ def scheduleupdate(request):
         if (enable == (str(
                 check_plan.enable)).lower() and groupId == check_plan.groupID.groupID and startUpTime == check_plan.startUpTime
                 and duration == int(check_plan.duration) and repeat == check_plan.repeat):
-            error = "您未做任何修改"
+            error = "You haven't made any changes."
             return JsonResponse({
                 "status": 202,
                 "message": error
@@ -1292,7 +1292,7 @@ def scheduleupdate(request):
                 if(flag==True):
                     break
             if(flag==True):
-                error = "您修改后的签到计划，与该群已有签到计划冲突"
+                error = "Your current schedule for this group is in conflict with the existing schedule"
                 return JsonResponse({
                     "status": 202,
                     "message": error
@@ -1327,7 +1327,7 @@ def scheduleupdate(request):
                             })
                         else:
 
-                            error = "您修改后的签到计划,与该群当前开启的签到可能存在冲突"
+                            error = "Your current schedule for this group is in conflict with the ongoing check"
                             return  JsonResponse({
                                 "status": 202,
                                 "message":error
@@ -1392,7 +1392,7 @@ def scheduledelete(request):
                 "message":"ok"
             })
         else:
-            error = "该签到计划不存在"
+            error = "The schedule does not exist"
             return JsonResponse({
                 "status":202,
                 "message":error
@@ -1408,13 +1408,13 @@ def record(request,checkID):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username
     check= models.check.objects.get(checkID=checkID)
-    group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID)
+    group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID.groupID)
     g=None
     if group.count()!=0:
         if check.enable is True:
             return JsonResponse({
                 "status": 202,
-                "message": "该签到正在进行中，请稍后查看"
+                "message": "The sign in is in progress. Please examine later"
             })
         else:
             starttime = str(check.startDate) + "T" + check.startUpTime + "Z"
@@ -1446,5 +1446,5 @@ def record(request,checkID):
     else:
         return JsonResponse({
             "status": 202,
-            "message": "你不是该群的管理员，或者该群不存在"
+            "message": "you are not the owner of the group or the groip is not exist"
         })
