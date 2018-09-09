@@ -28,14 +28,16 @@ def hasLoggedIn(request):
                 return JsonResponse(
                     {
                         'status':200,
-                        'message':False
+                        'message':'OK',
+			'data':False
                     }
                 )
             else:
                 return JsonResponse(
                     {
                         'status':200,
-                        'message':True
+                        'message':'OK',
+			'data':True
                     }
                 )
     else:
