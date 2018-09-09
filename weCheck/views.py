@@ -17,6 +17,34 @@ import datetime
 import string,random
 
 
+def hasLoggedIn(request):
+    if request.method == 'GET':
+
+        if request.session.has_key('sessionID') and request.session.has_key('token'):
+
+            # 用户拥有session，登陆验证
+            user = userSystem(request)
+            if not user.getUserObject():
+                return JsonResponse(
+                    {
+                        'status':200,
+                        'message':'false'
+                    }
+                )
+            else:
+                return JsonResponse(
+                    {
+                        'status':200,
+                        'message':'true'
+                    }
+                )
+    else:
+        return JsonResponse(
+            {
+                'status':202,
+                'message':'request.method is not GET.'
+            }
+        )
 @ajax_post_only
 def login(request):
     '''

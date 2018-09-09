@@ -5,6 +5,7 @@ from weCheck import views
 app_name = 'weCheck'
 urlpatterns = [
 
+    re_path(r'^hasLoggedIn/*$',     views.hasLoggedIn,    name='hasLoggedIn'),
     re_path(r'^login/*$',           views.login,          name='login'),           # access: all
     re_path(r'^logout/*$',          views.logout,         name='logout'),          # access: all
     re_path(r'^register/*$',        views.register,       name='register'),        # access: all
