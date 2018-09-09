@@ -1,6 +1,7 @@
 # coding=utf-8
 
 from weCheck.models import check
+from weCheck.models import checkPlan
 import datetime
 import time
 import threading
@@ -32,6 +33,7 @@ class scheduleThread(threading.Thread):
 
     def __init__(self,name,group,startUpTime,duration,repeat):
         threading.Thread.__init__(self)
+        self.planid = name
         self.name = str(name)+str(startUpTime)
         self.group = group
         self.startUpTime = startUpTime
@@ -64,6 +66,9 @@ class scheduleThread(threading.Thread):
                 if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
 
                     self.check_open_close(self.group, self.duration)
+                    schedule = checkPlan.objects.get_or_none(planID=self.planid)
+                    schedule.enable = False
+                    schedule.save()
                     break
                 else:
                     time.sleep(1)
