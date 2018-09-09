@@ -37,7 +37,7 @@ class scheduleThread(threading.Thread):
         self.startUpTime = startUpTime
         self.duration = duration
 
-        if repeat == '' :
+        if repeat == '':
             self.repeat = ''
         else:
             self.repeat = [(b - 1) for b in [int(a) for a in repeat.split(',')]]
@@ -58,18 +58,17 @@ class scheduleThread(threading.Thread):
         # 区分是 周期签到还是 一次性签到
         if self.repeat == '':
 
-           if (dateTarget-now).days < 0:
+            if (dateTarget-now).days < 0:
+                dateTarget = dateTarget+datetime.timedelta(days=1)
+            while True:
+                if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
 
-               dateTarget = dateTarget+datetime.timedelta(days=1)
-               while True:
-                   if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
+                    self.check_open_close(self.group, self.duration)
+                    break
+                else:
+                    time.sleep(1)
 
-                       self.check_open_close(self.group, self.duration)
-                       break
-                   else:
-                       time.sleep(1)
-
-           deleteScheduleThread(self.name)
+            deleteScheduleThread(self.name)
 
         else:
 
