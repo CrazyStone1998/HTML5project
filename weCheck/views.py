@@ -16,7 +16,7 @@ import time
 import datetime
 import string,random
 
-
+@never_cache
 def hasLoggedIn(request):
     if request.method == 'GET':
 
@@ -213,7 +213,8 @@ def userPOST(request):
 
     user.name = request.POST.get('name',user.name)
 
-    img = request.FILES.get('file')
+    img = request.FILES.get('profile')
+    print(request.FILES)
     if img:
         # 修改 大脸照
         user.profile = settings.ICON_URL + 'static/weCheck/img/' + user.username + '.jpg'
