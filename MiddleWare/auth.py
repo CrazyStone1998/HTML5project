@@ -23,7 +23,7 @@ class authenticationMiddleWare(MiddlewareMixin):
             requestData = request.POST
 
 
-        if 'admin' not in request.path:
+        if 'admin' not in request.path or 'hasLoggedIn' not in request.path:
             # 如果用户没有认证，限制访问
             if not request.session.has_key('sessionID') and not request.session.has_key('token') \
                     and 'register' not in request.path and 'login' not in request.path:
