@@ -927,6 +927,7 @@ def checkstatus(request):
                 s={
                     "groupId": str(future.groupID.groupID),
                     "startUpTime": str(future.startUpTime),
+                    'groupName':str(future.groupID.name),
                 }
                 futureList_request.append(s)
 
