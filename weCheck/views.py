@@ -989,14 +989,19 @@ def checkcheck(request):
                     })
                 else :
                     if g.needLocation==True:
-                        lng_now = float(request.POST.get('lng'))
-                        lat_now = float(request.POST.get('lat'))
-                        lng_base = float(g.lng)
-                        lat_base = float(g.lat)
+                        lng_now = float(request.POST.get('lng'))*math.pi/180.0
+                        lat_now = float(request.POST.get('lat'))*math.pi/180.0
+                        lng_base = float(g.lng)*math.pi/180.0
+                        lat_base = float(g.lat)*math.pi/180.0
+                        a = lat_base - lat_now
+                        b = lng_base - lng_now
                         effectiveDistance = float(g.effectiveDistance)
-                        distance = 6371000 * 2 * (math.asin((math.pow(math.sin((lat_now - lat_base) / 2), 2) + math.cos(
-                            lat_now) * math.cos(lat_base) * pow(math.sin((lng_now - lng_base) / 2), 2)) ** 0.5))
-                        if distance <= effectiveDistance:
+                        s = math.asin(math.sqrt(
+                            math.pow(math.sin(a / 2), 2) + math.cos(lat_base) * math.cos(lat_now) * math.pow(
+                                math.sin(b / 2), 2)))
+                        s = 2 * s * 6371000
+                        s = round(s * 10000) / 10000
+                        if s <= effectiveDistance:
                             m = m + "," + username
                             c.results = m
                             c.save()
