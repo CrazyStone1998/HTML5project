@@ -1021,7 +1021,15 @@ def checkcheck(request):
                         face_now = request.FILES.get('face').read()
                         with open(imgPath, 'rb') as f:
                             face_base = f.read()
+
+                        print(face_now)
+                        print(face_base)
+
                         face_result = BaiduAPI.faceContrast(face_now, face_base)
+
+                        print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
+                        print(face_result)
+
                         if str(face_result['result']=="SUCCESS"):
                             m = m + "," + username
                             c.results = m
