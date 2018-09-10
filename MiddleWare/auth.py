@@ -23,41 +23,41 @@ class authenticationMiddleWare(MiddlewareMixin):
             requestData = request.POST
 
         print(request.path)
-        #
-        # if 'admin' not in request.path or 'hasLoggedIn' not in request.path or 'favicon' not in request.path \
-        #     or 'js' not in request.path or 'css' not in request.path:
-        #     # 如果用户没有认证，限制访问
-        #     if not request.session.has_key('sessionID') and not request.session.has_key('token') \
-        #             and 'register' not in request.path and 'login' not in request.path:
-        #         context.append('Please login')
-        #         return JsonResponse({
-        #             'status': 403,
-        #             'message': context,
-        #         })
-        #     elif request.session.has_key('sessionID') and request.session.has_key('token') \
-        #             and 'register' not in request.path and 'logout' not in request.path \
-        #             and 'login' not in request.path:
-        #         try:
-        #             #用户拥有session，登陆验证
-        #             user = userSystem(request)
-        #             if not user.getUserObject():
-        #                 context.append('your authentication exceed the time limit')
-        #                 return JsonResponse({
-        #                     'status': 403,
-        #                     'message': context,
-        #                 })
-        #             '''
-        #
-        #             权限管理
-        #
-        #             pass
-        #
-        #
-        #             '''
-        #         except Exception as e:
-        #             context.append('somthing is wrong')
-        #             return JsonResponse({
-        #                 'status': 202,
-        #                 'message': context,
-        #             })
+
+        if 'admin' not in request.path or 'hasLoggedIn' not in request.path or 'favicon' not in request.path \
+            or 'js' not in request.path or 'css' not in request.path and request.path == '/':
+            # 如果用户没有认证，限制访问
+            if not request.session.has_key('sessionID') and not request.session.has_key('token') \
+                    and 'register' not in request.path and 'login' not in request.path:
+                context.append('Please login')
+                return JsonResponse({
+                    'status': 403,
+                    'message': context,
+                })
+            elif request.session.has_key('sessionID') and request.session.has_key('token') \
+                    and 'register' not in request.path and 'logout' not in request.path \
+                    and 'login' not in request.path:
+                try:
+                    #用户拥有session，登陆验证
+                    user = userSystem(request)
+                    if not user.getUserObject():
+                        context.append('your authentication exceed the time limit')
+                        return JsonResponse({
+                            'status': 403,
+                            'message': context,
+                        })
+                    '''
+
+                    权限管理
+
+                    pass
+
+
+                    '''
+                except Exception as e:
+                    context.append('somthing is wrong')
+                    return JsonResponse({
+                        'status': 202,
+                        'message': context,
+                    })
 
