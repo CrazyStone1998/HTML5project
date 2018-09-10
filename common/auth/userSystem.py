@@ -42,7 +42,7 @@ class userSystem(object):
                 # 设置 缓存
                 self.setCookieAndSession()
 
-                return error
+                return error,userlogin.userType
 
             else:
                 error = 'The password is not right'
@@ -50,7 +50,7 @@ class userSystem(object):
             # 用户对象 不存在
             error = 'user matching query does not exist.'
 
-        return error
+        return error,None
 
     def getUsername(self):
         '''

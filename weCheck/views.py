@@ -38,6 +38,7 @@ def hasLoggedIn(request):
                         'status':200,
                         'message':'OK',
                         'data':True
+
                     }
                 )
     else:
@@ -67,18 +68,20 @@ def login(request):
         # 清理 session
         request.session.flush()
 
-    error = user.authentication(username=username,password=password)
+    error,userType = user.authentication(username=username,password=password)
     # error为空 则登陆成功
     # error不为空 则登陆不成功
     if not error:
         return JsonResponse({
             'status':200,
             'message':'OK',
+            'userType':userType
         })
     else:
         return JsonResponse({
                             'status':202,
-                            'message':error
+                            'message':error,
+                            'userType':userType
                                         })
 
 @ajax_post_only
