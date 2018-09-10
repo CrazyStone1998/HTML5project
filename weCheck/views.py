@@ -67,6 +67,7 @@ def login(request):
     # 获取用户 账户 和 密码
     username = request.POST.get('username')
     password = request.POST.get('password')
+
     # 获取user对象
     user = userSystem(request)
     # user登陆 认证
