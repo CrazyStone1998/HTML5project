@@ -21,7 +21,7 @@ def hasLoggedIn(request):
     if request.method == 'GET':
 
         if request.session.has_key('sessionID') and request.session.has_key('token'):
-
+            print(request.session.get('sessionID'))
             # 用户拥有session，登陆验证
             user = userSystem(request)
             if not user.getUserObject():
@@ -34,13 +34,21 @@ def hasLoggedIn(request):
                 )
             else:
                 return JsonResponse(
-                    {
-                        'status':200,
-                        'message':'OK',
-                        'data':True
+                        {
+                            'status':200,
+                            'message':'OK',
+                            'data':True
 
-                    }
-                )
+                        }
+                    )
+        else:
+            return JsonResponse(
+                {
+                    'status': 200,
+                    'message': 'OK',
+                    'data': False
+                }
+            )
     else:
         return JsonResponse(
             {
