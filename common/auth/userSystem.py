@@ -3,7 +3,7 @@
 
 import redis
 import hashlib
-from datetime import datetime
+import time
 from weCheck import models
 from django.contrib.auth.hashers import check_password
 
@@ -100,6 +100,7 @@ class userSystem(object):
         self.token = self.request.session.get('token')
 
         if re.exists('sessionID_%s' % self.sessionID):
+
             token_redis = re.hget('sessionID_%s' % self.sessionID,'token').decode()
             username_redis = re.hget('sessionID_%s' % self.sessionID,'username').decode()
 
@@ -119,7 +120,7 @@ class userSystem(object):
             # set cookie
             # md5 加密 随机生成
             hash = hashlib.sha256(self.username.encode("utf8"))
-            token = hashlib.sha256((self.username.encode("utf8")))
+            token = hashlib.sha256((time.strftime('%H:%M:%S').encode("utf8")))
             hashID = hash.hexdigest()
             tokenID = token.hexdigest()
 
