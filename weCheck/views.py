@@ -186,7 +186,7 @@ def userGET(request):
     print('------------------------------')
     assert request.method == 'GET'
     # 获取用户对象
-    username = request.GET.get('username')
+    username = request.GET.get('id')
     if username:
         user = models.user.objects.get_or_none(username=username)
     else:
