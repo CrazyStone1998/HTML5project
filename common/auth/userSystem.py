@@ -114,6 +114,7 @@ class userSystem(object):
         '''
 
         self.sessionID = self.request.session.get('sessionID')
+        print('THIS SHOULD BE FALSE :%s' % self.sessionID)
         if not self.sessionID:
             # set cookie
             # md5 加密 随机生成
