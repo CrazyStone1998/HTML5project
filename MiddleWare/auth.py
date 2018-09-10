@@ -42,6 +42,7 @@ class authenticationMiddleWare(MiddlewareMixin):
 
                     #用户拥有session，登陆验证
                     user = userSystem(request)
+                    print(user.getUserObject())
                     if not user.getUserObject():
                         context.append('your authentication exceed the time limit')
                         return JsonResponse({
