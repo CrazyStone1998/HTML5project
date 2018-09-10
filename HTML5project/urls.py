@@ -25,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     re_path(r'^$',TemplateView.as_view(template_name='index.html')),
     re_path(r'^user.html$',TemplateView.as_view(template_name='user.html')),
+    re_path(r'^management.html',TemplateView.as_view(template_name='management.html')),
     path('api/v1/', include('weCheck.urls', namespace='weCheck'))
 ]
 
