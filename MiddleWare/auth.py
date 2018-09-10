@@ -38,6 +38,8 @@ class authenticationMiddleWare(MiddlewareMixin):
                     and 'register' not in request.path and 'logout' not in request.path \
                     and 'login' not in request.path:
                 try:
+                    print('------------------%s' % request.session.get('sessionID'))
+
                     #用户拥有session，登陆验证
                     user = userSystem(request)
                     if not user.getUserObject():
