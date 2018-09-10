@@ -75,13 +75,18 @@ def login(request):
         return JsonResponse({
             'status':200,
             'message':'OK',
-            'userType':userType
+            'data':{
+                'userType': userType
+            }
+
         })
     else:
         return JsonResponse({
                             'status':202,
                             'message':error,
-                            'userType':userType
+                            'data':{
+                                'userType': userType
+                            }
                                         })
 
 @ajax_post_only
