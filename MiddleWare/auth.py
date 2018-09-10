@@ -24,8 +24,8 @@ class authenticationMiddleWare(MiddlewareMixin):
 
         print(request.path)
 
-        if 'admin' not in request.path or 'hasLoggedIn' not in request.path or 'favicon' not in request.path \
-            or 'js' not in request.path or 'css' not in request.path and request.path == '/':
+        if 'user' in request.path or 'group' in request.path or 'check' in request.path \
+            or 'schedule' in request.path or 'history' in request.path or 'record' in request.path:
             # 如果用户没有认证，限制访问
             if not request.session.has_key('sessionID') and not request.session.has_key('token') \
                     and 'register' not in request.path and 'login' not in request.path:
