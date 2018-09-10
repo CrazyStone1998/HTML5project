@@ -22,8 +22,10 @@ class authenticationMiddleWare(MiddlewareMixin):
         else:
             requestData = request.POST
 
+        print(request.path)
 
-        if 'admin' not in request.path or 'hasLoggedIn' not in request.path:
+        if 'admin' not in request.path or 'hasLoggedIn' not in request.path or 'favicon' not in request.path \
+            or 'js' not in request.path or 'css' not in request.path:
             # 如果用户没有认证，限制访问
             if not request.session.has_key('sessionID') and not request.session.has_key('token') \
                     and 'register' not in request.path and 'login' not in request.path:
@@ -45,12 +47,12 @@ class authenticationMiddleWare(MiddlewareMixin):
                             'message': context,
                         })
                     '''
-    
+
                     权限管理
-    
+
                     pass
-    
-    
+
+
                     '''
                 except Exception as e:
                     context.append('somthing is wrong')

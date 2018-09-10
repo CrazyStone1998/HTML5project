@@ -28,14 +28,16 @@ def hasLoggedIn(request):
                 return JsonResponse(
                     {
                         'status':200,
-                        'message':'false'
+                        'message':'OK',
+                        'data':False
                     }
                 )
             else:
                 return JsonResponse(
                     {
                         'status':200,
-                        'message':'true'
+                        'message':'OK',
+                        'data':True
                     }
                 )
     else:
@@ -121,7 +123,7 @@ def register(request):
                 userType = request.POST.get('userType')
                 profile  = settings.ICON_URL+'static/weCheck/img/'+username+'.jpg'
                 # 将 用户 大脸照 写入 本地文件中
-                imgPath  = os.path.join(settings.STATIC_ROOT,'weCheck','img',username+'.jpg')
+                imgPath  = os.path.join(settings.BASE_DIR,'static','weCheck','img',username+'.jpg')
                 # 判断用户 大脸照 是否存在 若存在 重写
                 if os.path.exists(imgPath):
                     os.remove(imgPath)
@@ -218,7 +220,7 @@ def userPOST(request):
         # 修改 大脸照
         user.profile = settings.ICON_URL + 'static/weCheck/img/' + user.username + '.jpg'
         # 将 用户 大脸照 写入 本地文件中
-        imgPath = os.path.join(settings.STATIC_ROOT, 'weCheck', 'img', user.username + '.jpg')
+        imgPath = os.path.join(settings.BASE_DIR,'static', 'weCheck', 'img', user.username + '.jpg')
         # 判断用户 大脸照 是否存在 若存在 重写
         if os.path.exists(imgPath):
             os.remove(imgPath)
@@ -985,7 +987,7 @@ def checkcheck(request):
                                 "message": error
                             })
                     if g.needFace==True:
-                        imgPath = os.path.join(settings.STATIC_ROOT, 'weCheck', 'img', username + '.jpg')
+                        imgPath = os.path.join(settings.BASE_DIR,'static', 'weCheck', 'img', username + '.jpg')
                         face_now = request.FILES.get('face').read()
                         with open(imgPath, 'rb') as f:
                             face_base = f.read()
