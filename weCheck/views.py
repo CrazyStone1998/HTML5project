@@ -201,7 +201,8 @@ def userGET(request):
             'data': {
                 'username': user.username,
                 'profile': user.profile,
-                'name': user.name
+                'name': user.name,
+                'userType':user.userType
 
             }
         })
