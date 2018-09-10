@@ -16,7 +16,7 @@ class authenticationMiddleWare(MiddlewareMixin):
         :return:
         '''
         #错误信息
-        context = []
+        context = ''
         if request.method == 'GET':
             requestData = request.GET
         else:
@@ -29,7 +29,7 @@ class authenticationMiddleWare(MiddlewareMixin):
             # 如果用户没有认证，限制访问
             if not request.session.has_key('sessionID') and not request.session.has_key('token') \
                     and 'register' not in request.path and 'login' not in request.path:
-                context.append('Please login')
+                context = 'Please login'
                 return JsonResponse({
                     'status': 403,
                     'message': context,
@@ -45,7 +45,7 @@ class authenticationMiddleWare(MiddlewareMixin):
                     print('*********************')
                     print(user.getUserObject())
                     if not user.getUserObject():
-                        context.append('your authentication exceed the time limit')
+                        context = 'your authentication exceed the time limit'
                         return JsonResponse({
                             'status': 403,
                             'message': context,
@@ -59,7 +59,7 @@ class authenticationMiddleWare(MiddlewareMixin):
 
                     '''
                 except Exception as e:
-                    context.append('somthing is wrong')
+                    context = 'somthing is wrong'
                     return JsonResponse({
                         'status': 202,
                         'message': context,
