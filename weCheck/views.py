@@ -897,12 +897,15 @@ def checkstatus(request):
             openList_request.append(s)
         weekdate=str(nowdate.weekday()+1)
         belong_group=models.group.objects.filter(member__contains=username)#用户所属小组
+        belong_group_id=[]
+        for a in belong_group:
+            belong_group_id.append(a.groupID)
         nowtime = str(time.strftime('%H:%M', time.localtime(time.time())))#将现在的时间格式化为hh:mm
         s1 = "20160916" + nowtime + ":00"#为了能与startuptime相比较 两者必须放到同一天 再转化为日期类型
         t1 = time.strptime(s1, '%Y%m%d%H:%M:%S')
         time1 = time.mktime(t1)
 
-        futureList=models.checkPlan.objects.filter(groupID__in=belong_group).filter(enable__exact=True).filter(repeat__contains=weekdate)
+        futureList=models.checkPlan.objects.filter(enable__exact=True).filter(repeat__contains=weekdate)
 
         #以上future并没有一时间为条件过滤，因为时间是字符串类型，在上述语句中不好操作
         futureList_request=[]
@@ -912,7 +915,7 @@ def checkstatus(request):
             s2 = "20160916" + check_time + ":00"
             t2 = time.strptime(s2, '%Y%m%d%H:%M:%S')
             time2 = time.mktime(t2)
-            if(time2>time1):
+            if (time2>time1) and (future.groupID.groupID in belong_group_id):
                 s={
                     "groupId": str(future.groupID.groupID),
                     "startUpTime": str(future.startUpTime),
