@@ -186,7 +186,11 @@ def userGET(request):
     print('------------------------------')
     assert request.method == 'GET'
     # 获取用户对象
-    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username = request.GET.get('username')
+    if username:
+        user = models.user.objects.get_or_none(username=username)
+    else:
+        user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
 
     if user is not None:
 
