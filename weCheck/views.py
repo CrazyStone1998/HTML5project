@@ -1031,10 +1031,11 @@ def checkcheck(request):
                         print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
                         print(face_result)
 
-                        if str(face_result['result']=="SUCCESS"):
+                        if  face_result['result'] == "SUCCESS":
                             m = m + "," + username
                             c.results = m
                             c.save()
+
                             return JsonResponse({
                                 "status": 200,
                                 "message": "ok"
