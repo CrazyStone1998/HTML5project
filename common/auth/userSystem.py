@@ -120,7 +120,9 @@ class userSystem(object):
             # set cookie
             # md5 加密 随机生成
             hash = hashlib.sha256(self.username.encode("utf8"))
-            token = hashlib.sha256((time.strftime('%H:%M:%S').encode("utf8")))
+            # token = hashlib.sha256((time.strftime('%H:%M:%S').encode("utf8")))
+            token = hashlib.sha256(self.username.encode("utf8"))
+
             hashID = hash.hexdigest()
             tokenID = token.hexdigest()
 
