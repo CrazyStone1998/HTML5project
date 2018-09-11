@@ -23,7 +23,6 @@ class authenticationMiddleWare(MiddlewareMixin):
         else:
             requestData = request.POST
 
-        print(request.path)
 
         if 'user' in request.path or 'group' in request.path or 'check' in request.path \
             or 'schedule' in request.path or 'history' in request.path or 'record' in request.path:
@@ -39,12 +38,9 @@ class authenticationMiddleWare(MiddlewareMixin):
                     and 'register' not in request.path and 'logout' not in request.path \
                     and 'login' not in request.path:
                 try:
-                    print('------------------%s' % request.session.get('sessionID'))
 
                     #用户拥有session，登陆验证
                     user = userSystem(request)
-                    print('*********************')
-                    print(user.getUserObject())
                     if not user.getUserObject():
                         #用户登出
                         logout(request)

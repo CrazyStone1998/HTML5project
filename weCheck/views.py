@@ -21,7 +21,6 @@ def hasLoggedIn(request):
     if request.method == 'GET':
 
         if request.session.has_key('sessionID') and request.session.has_key('token'):
-            print(request.session.get('sessionID'))
             # 用户拥有session，登陆验证
             user = userSystem(request)
             if not user.getUserObject():
@@ -192,7 +191,6 @@ def userGET(request):
     '''
     # 错误信息列表
     error = ''
-    print('------------------------------')
     assert request.method == 'GET'
     # 获取用户对象
     username = request.GET.get('id')
@@ -721,7 +719,6 @@ def groupupdate(request):
             name = request.POST.get('name',group.name)
             needLocation = request.POST.get('needLocation',group.needLocation)
             needFace = request.POST.get('needFace',group.needFace)
-        #    print(isinstance(needLocation,'a'))
             if needLocation == 'true':
                 lng = request.POST.get('lng',group.lng)
                 lat = request.POST.get('lat',group.lat)
@@ -1237,9 +1234,7 @@ def scheduleadd(request):
                         if ti1 > ti2:
                             a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
                             # 开启 周期计划
-                            print('---执行到这里--')
                             ScheduleThread.addScheduleThread(a.planID, g, startUpTime, duration, repeat)
-                            print('执行完毕')
                             return JsonResponse({
                                 "status": 200,
                                 "message": "ok",
@@ -1262,9 +1257,7 @@ def scheduleadd(request):
 
                 else:
                     a = models.checkPlan.checkPlanObejct(g, startUpTime, duration, repeat, True)
-                    print('---执行到这里--')
                     ScheduleThread.addScheduleThread(a.planID, g, startUpTime, duration, repeat)
-                    print('执行完毕')
                     return JsonResponse({
                         "status":200,
                         "message":"ok",
