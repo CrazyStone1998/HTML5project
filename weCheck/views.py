@@ -894,12 +894,14 @@ def checkstatus(request):
         openList=models.check.objects.filter(members__contains=username).filter(enable__exact=True)
         openList_request=[]
         for open in openList:
-            s={
-                "groupId": str(open.groupID.groupID),
-                "groupName": str(open.groupID.name),
-                "startUpTime": str(open.startUpTime),
-            }
-            openList_request.append(s)
+            if username not in open.results:
+                s = {
+                    "groupId": str(open.groupID.groupID),
+                    "groupName": str(open.groupID.name),
+                    "startUpTime": str(open.startUpTime),
+                }
+                openList_request.append(s)
+
         weekdate=str(nowdate.weekday()+1)
         belong_group=models.group.objects.filter(member__contains=username)#用户所属小组
         belong_group_id=[]
@@ -922,6 +924,7 @@ def checkstatus(request):
             time2 = time.mktime(t2)
             if (time2>time1) and (future.groupID.groupID in belong_group_id):
                 s={
+
                     "groupId": str(future.groupID.groupID),
                     "startUpTime": str(future.startUpTime),
                     'groupName':str(future.groupID.name),
