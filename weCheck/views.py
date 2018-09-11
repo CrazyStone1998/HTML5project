@@ -589,8 +589,7 @@ def grouplist(request):
                                     checked = True
                                 else:
                                     checked = False
-
-                                    flag = 1
+                                flag = 1
                                 group_message = {'id': groupID, 'name': name, 'owner': owner.username,
                                                      'state': state, 'role': 1,'checked':checked,
                                                      'needLocation': needLocation, 'needFace': needFace
