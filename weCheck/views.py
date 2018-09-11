@@ -587,8 +587,7 @@ def grouplist(request):
                                     checked = True
                                 else:
                                     checked = False
-
-                                    flag = 1
+                                flag = 1
                                 group_message = {'id': groupID, 'name': name, 'owner': owner.username,
                                                      'state': state, 'role': 1,'checked':checked,
                                                      'needLocation': needLocation, 'needFace': needFace
@@ -911,7 +910,7 @@ def checkstatus(request):
         t1 = time.strptime(s1, '%Y%m%d%H:%M:%S')
         time1 = time.mktime(t1)
 
-        futureList=models.checkPlan.objects.filter(enable__exact=True).filter(Q(repeat__contains=weekdate)|Q(repeat__exact=None))
+        futureList=models.checkPlan.objects.filter(enable__exact=True).filter(Q(repeat__contains=weekdate) | Q(repeat__exact=""))
 
         #以上future并没有一时间为条件过滤，因为时间是字符串类型，在上述语句中不好操作
         futureList_request=[]
