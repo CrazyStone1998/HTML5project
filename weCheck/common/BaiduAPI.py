@@ -34,7 +34,12 @@ def faceContrast(imageRequest,imageDatabase):
     request.add_header('Content-Type', 'application/json')
     response = urllib.request.urlopen(request)
     result = {}
-    content = eval(str(response.read(), encoding='utf-8'))
+    try:
+        content = eval(str(response.read(), encoding='utf-8'))
+    except Exception as e:
+        result['result'] = 'FAILED'
+        result['msg'] = 'pic has no face'
+        return result
     if content['error_msg'] == 'SUCCESS':
         if content['result']['score'] >= 80:
             result['result'] = 'SUCCESS'
