@@ -23,8 +23,8 @@ def faceContrast(imageRequest,imageDatabase):
     imageDatabase_base64 = base64.b64encode(imageDatabase)
 
     params = json.dumps(
-        [{"image": str(imageRequest_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW"},
-         {"image": str(imageDatabase_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW"}]
+        [{"image": str(imageRequest_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW","liveness_control":"HIGH"},
+         {"image": str(imageDatabase_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW","liveness_control":"HIGH"}]
     ).encode('utf-8')
 
 
