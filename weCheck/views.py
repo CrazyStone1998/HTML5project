@@ -1035,7 +1035,7 @@ def checkcheck(request):
                                 "message": "ok"
                             })
                         else:
-                            error = face_result['error_msg']
+                            error = face_result['msg']
                             return JsonResponse({
                                 "status": 202,
                                 "message": error
