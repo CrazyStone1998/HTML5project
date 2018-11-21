@@ -34,13 +34,13 @@ def faceContrast(imageRequest,imageDatabase):
     request.add_header('Content-Type', 'application/json')
     response = urllib.request.urlopen(request)
     result = {}
-    content = json.loads(response.read())
+    content = json.loads(str(response.read(),encoding='utf-8'))
     if content['error_msg'] == 'SUCCESS':
         if content['result']['score'] >= 80:
             result['result'] = 'SUCCESS'
         else:
             result['result'] = 'FAILED'
-            result['msg'] = 'undermatching'
+            result['msg'] = 'Face Recognition mismatch'
     else:
         result['result'] = 'FAILED'
         result['msg'] = content['error_msg']
