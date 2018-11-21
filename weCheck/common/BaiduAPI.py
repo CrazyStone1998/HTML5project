@@ -23,8 +23,8 @@ def faceContrast(imageRequest,imageDatabase):
     imageDatabase_base64 = base64.b64encode(imageDatabase)
 
     params = json.dumps(
-        [{"image": str(imageRequest_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW"},
-         {"image": str(imageDatabase_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW"}]
+        [{"image": str(imageRequest_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW","liveness_control":"HIGH"},
+         {"image": str(imageDatabase_base64, 'utf-8'), "image_type": "BASE64", "face_type": "LIVE", "quality_control": "LOW","liveness_control":"HIGH"}]
     ).encode('utf-8')
 
 
@@ -34,13 +34,13 @@ def faceContrast(imageRequest,imageDatabase):
     request.add_header('Content-Type', 'application/json')
     response = urllib.request.urlopen(request)
     result = {}
-    content = eval(str(response.read(), encoding='utf-8'))
+    content = json.loads(str(response.read(),encoding='utf-8'))
     if content['error_msg'] == 'SUCCESS':
         if content['result']['score'] >= 80:
             result['result'] = 'SUCCESS'
         else:
             result['result'] = 'FAILED'
-            result['msg'] = 'undermatching'
+            result['msg'] = 'Face Recognition mismatch'
     else:
         result['result'] = 'FAILED'
         result['msg'] = content['error_msg']

@@ -3,7 +3,7 @@
 
 import redis
 import hashlib
-from datetime import datetime
+import time
 from weCheck import models
 from django.contrib.auth.hashers import check_password
 
@@ -29,7 +29,7 @@ class userSystem(object):
         :return:
         '''
 
-        error = []
+        error = None
 
         # 获取登陆对象
         userlogin = models.user.objects.get_or_none(username=username)
@@ -42,15 +42,15 @@ class userSystem(object):
                 # 设置 缓存
                 self.setCookieAndSession()
 
-                return error
+                return error,userlogin.userType
 
             else:
-                error.append('The password is not right')
+                error = 'The password is not right'
         else:
             # 用户对象 不存在
-            error.append('user matching query does not exist.')
+            error = 'user matching query does not exist.'
 
-        return error
+        return error,None
 
     def getUsername(self):
         '''
@@ -100,6 +100,7 @@ class userSystem(object):
         self.token = self.request.session.get('token')
 
         if re.exists('sessionID_%s' % self.sessionID):
+
             token_redis = re.hget('sessionID_%s' % self.sessionID,'token').decode()
             username_redis = re.hget('sessionID_%s' % self.sessionID,'username').decode()
 
@@ -118,7 +119,9 @@ class userSystem(object):
             # set cookie
             # md5 加密 随机生成
             hash = hashlib.sha256(self.username.encode("utf8"))
-            token = hashlib.sha256((self.username.encode("utf8")))
+            # token = hashlib.sha256((time.strftime('%H:%M:%S').encode("utf8")))
+            token = hashlib.sha256(self.username.encode("utf8"))
+
             hashID = hash.hexdigest()
             tokenID = token.hexdigest()
 

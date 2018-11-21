@@ -48,7 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'MiddleWare.auth.authenticationMiddleWare',
+    #'MiddleWare.auth.authenticationMiddleWare',
     'django.middleware.cache.FetchFromCacheMiddleware', # This must be last
 ]
 
@@ -57,7 +57,7 @@ ROOT_URLCONF = 'HTML5project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR,'templates')],
+        'DIRS': [os.path.join(BASE_DIR,'static/weCheck/dist')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -83,7 +83,6 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wecheck',
         'USER': 'root',
-
         'PASSWORD': 'wecheck',
         'HOST': 'localhost',
         'POST': '3306',
@@ -166,6 +165,10 @@ CELERY_TIMEZONE = TIME_ZONE
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 ICON_URL = 'http://39.106.131.88/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR,'static/weCheck/dist/static')
+]
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
