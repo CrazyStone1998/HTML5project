@@ -1529,14 +1529,36 @@ def groupleave(request):
 
         return JsonResponse(
             {
-                'status':200,
-                'message':'OK',
+                'status': 200,
+                'message': 'OK',
             }
         )
 
 #管理端 回应
 def leave(request):
 
+    leaves = []
+
     if request.method == 'GET':
 
-        groupID = request.GET.get('')
+        groupID = request.GET.get('group_id')
+
+        leave_list = models.leave.objects.filter(Q(groupID=groupID) & Q(status=0))
+
+        for each in leave_list:
+            leaves.append(
+                {
+                    'name':each.username.name,
+                    'result':each.result,
+                }
+            )
+
+        return JsonResponse(
+            {
+                'status': 200,
+                'message': 'success',
+                'data': {
+                    'leaves': leaves,
+                }
+            }
+        )
