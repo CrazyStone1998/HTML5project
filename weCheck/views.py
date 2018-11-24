@@ -1429,10 +1429,6 @@ def scheduleupdate(request):
             "message": error
         })
 
-
-
-
-
 def scheduledelete(request):
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     username=user.username
@@ -1508,3 +1504,39 @@ def record(request,checkID):
             "status": 202,
             "message": "you are not the owner of the group or the groip is not exist"
         })
+
+#用户端 请假接口
+def groupleave(request):
+    '''
+    用户发出请假请求，数据库插入请假记录
+    :param request:
+                    groupId:
+                    reason:
+    :return:
+    '''
+    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    username = user.username
+
+    if request.method == 'POST':
+
+        groupID = request.POST.get('group_id')
+        result = request.POST.get('result')
+
+        checkrecorde = models.check.objects.get_or_none(Q(groupID=groupID)&Q(enable=True))
+
+
+        new_leave = models.leave.leaveObject(user, checkrecorde, result)
+
+        return JsonResponse(
+            {
+                'status':200,
+                'message':'OK',
+            }
+        )
+
+#管理端 回应
+def leave(request):
+
+    if request.method == 'GET':
+
+        groupID = request.GET.get('')

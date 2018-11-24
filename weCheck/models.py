@@ -116,7 +116,7 @@ class check(models.Model):
     enable      = models.BooleanField(default=True)
     results     = models.CharField(max_length=1000)
     members     = models.CharField(max_length=1000)
-    startDate   =models.DateField(auto_now_add=True)
+    startDate   = models.DateField(auto_now_add=True)
 
     objects = wecheckManager()
 
@@ -151,7 +151,7 @@ class checkPlan(models.Model):
 
 
     planID      = models.AutoField(primary_key = True)
-    groupID     = models.ForeignKey(group,to_field = 'groupID',on_delete=models.CASCADE)
+    groupID     = models.ForeignKey(group, to_field='groupID', on_delete=models.CASCADE)
     startUpTime = models.CharField(max_length=20)
     duration    = models.IntegerField()
     repeat      = models.CharField(max_length=20)
@@ -170,6 +170,41 @@ class checkPlan(models.Model):
         new.repeat =repeat
         new.enable = enable
         new.save()
+        return new
+"""
+              请假请求表
+              
+  字段           类型           描述
+
+ username      varchar        请求人员id
+ checkId       varchar        请假群组签到id
+ status        interger       请假处理状态
+ result        varchar        请假原因
+ reMsg         varchar        回复信息
+
+"""
+class leave(models.Model):
+
+    username = models.ForeignKey(user, to_field='username', on_delete=models.CASCADE)
+    checkId = models.ForeignKey(check, to_field='checkID', on_delete=models.CASCADE)
+
+    status = models.IntegerField(default=0)
+    result = models.CharField(max_length=100)
+    reMsg = models.CharField(max_length=100)
+
+
+    objects = wecheckManager()
+
+    @classmethod
+    def leaveObject(cls, username, checkId, result):
+
+        new = leave()
+        new.username = username
+        new.checkId = checkId
+        new.result = result
+
+        new.save()
+
         return new
 
 
