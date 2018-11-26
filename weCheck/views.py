@@ -1645,7 +1645,7 @@ def datarecord(request, groupID):
                     data_raw[each_result]['done'] = data_raw[each_result]['done'] + 1
 
         for each_key in data_raw.keys():
-            data_raw[each_key]['missed'] = data_raw[each_key]['sum'] - data_raw[each_key]['leave']
+            data_raw[each_key]['missed'] = data_raw[each_key]['sum'] - data_raw[each_key]['leave'] - data_raw[each_key]['done']
             data_raw[each_key]['done_percent'] = '{:.2%}'.format(data_raw[each_key]['done'] / data_raw[each_key]['sum'])
 
     return JsonResponse(
