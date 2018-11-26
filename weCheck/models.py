@@ -186,7 +186,7 @@ class checkPlan(models.Model):
 class leave(models.Model):
 
     username = models.ForeignKey(user, to_field='username', on_delete=models.CASCADE)
-    checkId = models.ForeignKey(check, to_field='checkID', on_delete=models.CASCADE)
+    checkID = models.ForeignKey(check, to_field='checkID', on_delete=models.CASCADE)
 
     status = models.IntegerField(default=0)
     result = models.CharField(max_length=100)
