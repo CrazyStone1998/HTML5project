@@ -1561,8 +1561,8 @@ def groupleave(request):
         group_id = request.POST.get('group_id')
         result = request.POST.get('result')
 
-        groupID = models.group.objects.get_or_none(Q(groupID=group_id))
-        checkrecorde = models.check.objects.get_or_none(Q(groupID=groupID) & Q(enable=True))
+        groupID = models.group.objects.get_or_none(groupID=group_id)
+        checkrecorde = models.check.objects.get(Q(groupID=groupID) & Q(enable=True))
 
 
         new_leave = models.leave.leaveObject(user, checkrecorde, groupID, result)
