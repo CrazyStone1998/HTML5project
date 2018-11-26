@@ -1562,9 +1562,9 @@ def groupleave(request):
         result = request.POST.get('result')
 
         groupID = models.group.objects.get_or_none(groupID=group_id)
-        checkrecorde = models.check.objects.get(Q(groupID=groupID) & Q(enable=True))
+        checkrecorde = models.check.objects.filter(Q(groupID=groupID))[0]
 
-
+        print('123')
         new_leave = models.leave.leaveObject(user, checkrecorde, groupID, result)
 
         return JsonResponse(
@@ -1590,7 +1590,7 @@ def leave(request):
         for each in leave_list:
             leaves.append(
                 {
-                    'leave_id': each.username.checkID,
+                    'leave_id': each.leaveID,
                     'username': each.username.username,
                     'name': each.username.name,
                     'result': each.result,
@@ -1621,6 +1621,8 @@ def datarecord(request, groupID):
             checkID = each_check.checkID
 
             member_list = each_check.members.split(' ')
+
+
             for each_member in member_list:
                 if not data_raw.get(each_member):
                     data_raw[each_member] = {
@@ -1634,17 +1636,20 @@ def datarecord(request, groupID):
                 else:
                     data_raw[each_member]['sum'] = data_raw[each_member]['sum'] + 1
 
-            leave_list = models.leave.objects.filter(Q(checkID=checkID))
-            for each_leave in leave_list:
-                data_raw[each_leave.username.username]['leave'] = data_raw[each_leave.username.username]['leave'] + 1
+            leave_list = models.leave.objects.filter(checkID=checkID)
+
+            if leave_list:
+                for each_leave in leave_list:
+                    data_raw[each_leave.username.username]['leave'] = data_raw[each_leave.username.username]['leave'] + 1
 
             results_list = each_check.results.split(',')
-            for each_result in results_list:
+            for each_result in results_list[1:]:
                 if each_result:
+
                     data_raw[each_result]['done'] = data_raw[each_result]['done'] + 1
 
         for each_key in data_raw.keys():
-            data_raw[each_key]['missed'] = data_raw[each_key]['sum'] - data_raw[each_key]['leave']
+            data_raw[each_key]['missed'] = data_raw[each_key]['sum'] - data_raw[each_key]['leave'] - data_raw[each_key]['done']
             data_raw[each_key]['done_percent'] = '{:.2%}'.format(data_raw[each_key]['done'] / data_raw[each_key]['sum'])
 
     return JsonResponse(
@@ -1652,6 +1657,39 @@ def datarecord(request, groupID):
             'status': 200,
             'message': 'OK',
             'data': list(data_raw.values())
+        }
+    )
+
+def leaveresponse(request):
+    '''
+
+    :param request:
+    :return:
+    '''
+
+    if request.method == 'POST':
+
+        leave_id = request.POST.get('leave_id')
+        leave_response = request.POST.get('leave_response')
+        leave_msg = request.POST.get('leave_msg')
+
+        leaveID = models.leave.objects.get_or_none(leaveID=leave_id)
+
+        if leave_response:
+
+            leaveID.status = 1
+        else:
+
+            leaveID.status = 2
+
+        leaveID.reMsg = leave_msg
+
+        leaveID.save()
+
+    return JsonResponse(
+        {
+            'status': 200,
+            'message': 'OK',
         }
     )
 

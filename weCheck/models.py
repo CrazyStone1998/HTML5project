@@ -203,7 +203,7 @@ class leave(models.Model):
 
         new = leave()
         new.username = username
-        new.checkId = checkID
+        new.checkID = checkID
         new.groupID = groupID
 
         new.result = result
