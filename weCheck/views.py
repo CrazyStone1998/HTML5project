@@ -1635,11 +1635,12 @@ def datarecord(request, groupID):
                     data_raw[each_member]['sum'] = data_raw[each_member]['sum'] + 1
 
             leave_list = models.leave.objects.filter(Q(checkID=checkID))
-            for each_leave in leave_list:
-                data_raw[each_leave.username.username]['leave'] = data_raw[each_leave.username.username]['leave'] + 1
+            if leave_list:
+                for each_leave in leave_list:
+                    data_raw[each_leave.username.username]['leave'] = data_raw[each_leave.username.username]['leave'] + 1
 
             results_list = each_check.results.split(',')
-            for each_result in results_list:
+            for each_result in results_list[1:]:
                 if each_result:
                     data_raw[each_result]['done'] = data_raw[each_result]['done'] + 1
 
