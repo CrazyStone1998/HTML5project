@@ -274,7 +274,16 @@ def group(request):
             role = 2
             #找到当前计划
             checks = models.check.objects.filter(groupID=groupID)
+           # anyLeave = False
             if checks.count()!=0:
+                # checkID_List = []
+                # for check in checks:
+                #     checkID_List.append(check.checkID)
+                # for checkID in checkID_List:
+                #     leaves = models.leave.objects.filter(checkId=checkID)
+                #     if leaves is not None:
+                #         anyLeave = True
+                #         break
                 for check in checks:
                     state = check.enable
                     if state == True:
@@ -301,6 +310,7 @@ def group(request):
                                      'needLocation':needLocation,
                                      'location':locations,
                                      'needFace':needFace,
+                                     #'anyLeave':anyLeave
                                  }
                                  })
                         return JsonResponse({'status': 200,
@@ -314,7 +324,8 @@ def group(request):
                                      'state': state,
                                      'needLocation':needLocation,
                                      'needFace':needFace,
-                                 }
+                                    # 'anyLeave': anyLeave
+                                     }
                                  })
                 #当前没有开启的签到计划
                 member_message = []
@@ -340,6 +351,7 @@ def group(request):
                                      'needLocation':needLocation,
                                      'needFace':needFace,
                                      'location':locations,
+                                  #   'anyLeave':anyLeave
                                  }
                                  })
                 return JsonResponse({'status': 200,
@@ -353,7 +365,8 @@ def group(request):
                                      'state': False,
                                      'needLocation':needLocation,
                                      'needFace':needFace,
-                                 }
+                                    # 'anyLeave': anyLeave
+                                     }
                                  })
 
             #当前群组还没有计划
@@ -382,6 +395,7 @@ def group(request):
                                      'needLocation': needLocation,
                                      'needFace': needFace,
                                      'location': locations,
+                                     #'anyLeave':False
                                  }
                                  })
                 return JsonResponse({'status': 200,
@@ -395,6 +409,7 @@ def group(request):
                                      'state': state,
                                      'needLocation': needLocation,
                                      'needFace': needFace,
+                                     #'anyLeave': False
                                  }
                                  })
         elif user.username in group.member:
@@ -483,10 +498,19 @@ def grouplist(request):
                     needLocation = group.needLocation
                     needFace = group.needFace
                     checks = models.check.objects.filter(groupID=groupID)
+                    #anyLeave = False
                     #group 的 member 信息
                     member_message = []
                     #查找当前计划
                     if checks.count()!=0:
+                        # checkID_List = []
+                        # for check in checks:
+                        #     checkID_List.append(check.checkID)
+                        # for checkID in checkID_List:
+                        #     leaves = models.leave.objects.filter(checkId=checkID)
+                        #     if leaves is not None:
+                        #         anyLeave = True
+                        #         break
                         for check in checks:
                             state = check.enable
                             if state == True:
@@ -504,14 +528,14 @@ def grouplist(request):
                                     location = {'lng':lng,'lat':lat,'effectiveDistance':effectiveDistance}
                                     group_message = {'id':groupID,'name':name,'owner':owner.username,'members':member_message,
                                                      'state':state,'role':2,'needLocation':needLocation,
-                                                     'location':location,'needFace':needFace}
+                                                     'location':location,'needFace':needFace,}
                                     data.append(group_message)
                                     break
                                 #不开启基于位置的签到
                                 group_message = {'id': groupID, 'name': name, 'owner': owner.username,
                                                      'members': member_message,
                                                      'state': state, 'role': 2, 'needLocation': needLocation,
-                                                     'needFace': needFace}
+                                                     'needFace': needFace,}
                                 data.append(group_message)
                         #没有当前计划时
                         if flag == 0:
@@ -529,12 +553,12 @@ def grouplist(request):
                                 group_message = {'id': groupID, 'name': name, 'owner': owner.username,
                                                  'members': member_message,
                                                  'state': False, 'role': 2, 'needLocation': needLocation,
-                                                 'location': location, 'needFace': needFace}
+                                                 'location': location, 'needFace': needFace,}
                                 data.append(group_message)
                             if flag == 0:
                                 group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,
                                          'state': False,
-                                         'role': 2,'needLocation': needLocation,'needFace': needFace}
+                                         'role': 2,'needLocation': needLocation,'needFace': needFace,}
                                 data.append(group_message)
                     #check中没有当前group的计划
                     else:
@@ -552,11 +576,11 @@ def grouplist(request):
                             group_message = {'id': groupID, 'name': name, 'owner': owner.username,
                                              'members': member_message,
                                              'state': False, 'role': 2, 'needLocation': needLocation,
-                                             'location': location, 'needFace': needFace}
+                                             'location': location, 'needFace': needFace,}
                             data.append(group_message)
                         if flag == 0:
                             group_message = {'id': groupID, 'name': name, 'owner': owner.username, 'members': member_message,'state':False,
-                                     'role': 2,'needLocation': needLocation,'needFace': needFace}
+                                     'role': 2,'needLocation': needLocation,'needFace': needFace,}
                             data.append(group_message)
                 return     JsonResponse({'status':200,
                                  'message':'success',
@@ -767,10 +791,12 @@ def groupdelete(request):
             'message':'group not exist'
         })
 
+
 def history(request,id):
-    user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
+    uname = userSystem(request).getUsername()
+    user = models.user.objects.get_or_none(username=uname)
     group = models.group.objects.get_or_none(groupID=id)
-    checks = models.check.objects.filter(groupID=id)
+    checks = models.check.objects.filter(groupID=id).order_by('-checkID')
     history_message = []
     if group is not None:
         if checks.count()==0:
@@ -797,11 +823,13 @@ def history(request,id):
                 )
             if user.username in group.member:
                 for check in checks:
+                    leaves = models.leave.objects.get_or_none(username=uname,checkID=check.checkID,status=1)
                     message = {
                         'id': check.checkID,
                         'startUpDateTime': str(check.startDate)+'T'+check.startUpTime+'Z',
                         'duration': check.duration,
-                        'checked':user.username in check.results
+                        'checked':user.username in check.results,
+                        'leave': True if leaves is not None else False
                     }
                     history_message.append(message)
                 return JsonResponse({
@@ -826,7 +854,7 @@ def history(request,id):
 def userhistory(request,groupID,username):
     user = models.user.objects.get_or_none(username=username)
     group = models.group.objects.get_or_none(groupID=groupID)
-    checks = models.check.objects.filter(groupID=groupID)
+    checks = models.check.objects.filter(groupID=groupID).order_by('-checkID')
     history_message = []
     if group is not None:
         if checks.count() == 0:
@@ -839,11 +867,13 @@ def userhistory(request,groupID,username):
         else:
             if user.username in group.member:
                 for check in checks:
+                    leaves = models.leave.objects.get_or_none(username=username, checkID=check.checkID,status=1)
                     message = {
                         'id': check.checkID,
                         'startUpDateTime': str(check.startDate)+'T'+check.startUpTime+'Z',
                         'duration': check.duration,
-                        'checked': user.username in check.results
+                        'checked': user.username in check.results,
+                        'leave':True if leaves is not None else False
                     }
                     history_message.append(message)
                 return JsonResponse({
@@ -1465,6 +1495,11 @@ def record(request,checkID):
     username=user.username
     check= models.check.objects.get(checkID=checkID)
     group = models.group.objects.filter(owner__exact=username).filter(groupID__exact=check.groupID.groupID)
+    leaves = models.leave.objects.filter(checkID=checkID,status=1)
+    leavenameList = []
+    if leaves.count() != 0:
+        for leave in leaves:
+            leavenameList.append(leave.username.username)
     g=None
     if group.count()!=0:
         if check.enable is True:
@@ -1475,9 +1510,10 @@ def record(request,checkID):
         else:
             starttime = str(check.startDate) + "T" + check.startUpTime + "Z"
             memeber = check.members.split(" ")
-            result = check.members.strip(" ,").split(",")
+            result = check.results.strip(" ,").split(",")
             doneList = []
             missedList = []
+            leaveList = []
             for m in memeber:
                 m_name = (models.user.objects.get(username=m)).name
                 s = {
@@ -1486,6 +1522,8 @@ def record(request,checkID):
                 }
                 if m in result:
                     doneList.append(s)
+                elif m in leavenameList:
+                    leaveList.append(s)
                 else:
                     missedList.append(s)
             return JsonResponse({
@@ -1496,7 +1534,8 @@ def record(request,checkID):
                     "startUpTime": starttime,
                     "duration": check.duration,
                     "done": doneList,
-                    "missed": missedList
+                    "missed": missedList,
+                    'leave':leaveList
                 }
             })
     else:
