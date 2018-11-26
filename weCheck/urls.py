@@ -28,6 +28,7 @@ urlpatterns = [
     re_path(r'^group/leave/*$',     views.groupleave,     name='groupleave'),
     re_path(r'^leave/*$',           views.leave,          name='leave'),
 
+    re_path(r'^group/(?P<groupID>[\d\w]{6})/user/record/*$', views.datarecord, name='datareord'),
     re_path(r'^group/(?P<groupID>[\d\w]{6})/user/(?P<username>.+)/*$', views.userhistory, name='userhistory'),# access:user
     re_path(r'^history/(?P<id>[\d\w]{6}/*$)', views.history, name='history'),  # access : all
     re_path(r'^record/(?P<checkID>[\d]+)/*$',views.record,name='record'),# access: manager
