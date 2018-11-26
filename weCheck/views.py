@@ -1529,14 +1529,87 @@ def groupleave(request):
 
         return JsonResponse(
             {
-                'status':200,
-                'message':'OK',
+                'status': 200,
+                'message': 'OK',
             }
         )
 
 #管理端 回应
 def leave(request):
 
+    leaves = []
+
     if request.method == 'GET':
 
-        groupID = request.GET.get('')
+        groupID = request.GET.get('group_id')
+
+        leave_list = models.leave.objects.filter(Q(groupID=groupID) & Q(status=0))
+
+        for each in leave_list:
+            leaves.append(
+                {
+                    'name':each.username.name,
+                    'result':each.result,
+                }
+            )
+
+        return JsonResponse(
+            {
+                'status': 200,
+                'message': 'success',
+                'data': {
+                    'leaves': leaves,
+                }
+            }
+        )
+
+#
+def datarecord(request, groupID):
+
+    data_raw = {}
+
+    if request.method == 'GET':
+
+        check_data_list = models.check.objects.filter(Q(groupID=groupID))
+
+        for each_check in check_data_list:
+
+            checkID = each_check.checkID
+
+            member_list = each_check.members.split(' ')
+            for each_member in member_list:
+                if not data_raw.get(each_member):
+                    data_raw[each_member] = {
+                        'user_name': each_member,
+                        'missed': 0,
+                        'leave': 0,
+                        'sum': 1,
+                        'done': 0,
+                        'done_percent': '',
+                    }
+                else:
+                    data_raw[each_member]['sum'] = data_raw[each_member]['sum'] + 1
+
+            leave_list = models.leave.objects.filter(Q(checkID=checkID))
+            for each_leave in leave_list:
+                data_raw[each_leave.username.username]['leave'] = data_raw[each_leave.username.username]['leave'] + 1
+
+            results_list = each_check.results.split(',')
+            for each_result in results_list:
+                if each_result:
+                    data_raw[each_result]['done'] = data_raw[each_result]['done'] + 1
+
+        for each_key in data_raw.keys():
+            data_raw[each_key]['missed'] = data_raw[each_key]['sum'] - data_raw[each_key]['leave']
+            data_raw[each_key]['done_percent'] = '{:.2%}'.format(data_raw[each_key]['done'] / data_raw[each_key]['sum'])
+
+    return JsonResponse(
+        {
+            'status': 200,
+            'message': 'OK',
+            'data': list(data_raw.values())
+        }
+    )
+
+
+
