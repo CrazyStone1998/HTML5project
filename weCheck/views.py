@@ -1590,7 +1590,11 @@ def leave(request):
         for each in leave_list:
             leaves.append(
                 {
+<<<<<<< HEAD
                     'leave_id': each.leaveID,
+=======
+                    'leave_id': each.checkID,
+>>>>>>> 9f5bb21d7e0cdb0b56b141158d8ad4fa67daf455
                     'username': each.username.username,
                     'name': each.username.name,
                     'result': each.result,
@@ -1637,6 +1641,7 @@ def datarecord(request, groupID):
                     data_raw[each_member]['sum'] = data_raw[each_member]['sum'] + 1
 
             leave_list = models.leave.objects.filter(checkID=checkID)
+
 
             if leave_list:
                 for each_leave in leave_list:
