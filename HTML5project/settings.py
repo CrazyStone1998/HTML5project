@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+from django.utils.translation import ugettext_lazy as _
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -22,7 +23,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'e$3-sqham-+@&rkzlg!jtsqp7+r8$tpp*0x^gluoftk)yju#p$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
+
 DEBUG = True
+
+
+LANGUAGES = (
+    ('en', _('English')),
+    ('zh-hans', _('Chinese')),
+)
 
 ALLOWED_HOSTS = ['39.106.131.88','*']
 
@@ -37,6 +46,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'weCheck',
+    'xadmin',
+    'crispy_forms',
+    'reversion',
 ]
 
 MIDDLEWARE = [
@@ -83,7 +95,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wecheck',
         'USER': 'root',
-        'PASSWORD': 'wecheck',
+        'PASSWORD': 'gsy19980811',
         'HOST': 'localhost',
         'POST': '3306',
 
@@ -140,7 +152,7 @@ SESSION_REDIS_PREFIX = 'session'
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
 TIME_ZONE = 'Asia/Shanghai'
 
