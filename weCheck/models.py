@@ -185,8 +185,11 @@ class checkPlan(models.Model):
 """
 class leave(models.Model):
 
+    leaveID = models.AutoField(primary_key=True)
+
     username = models.ForeignKey(user, to_field='username', on_delete=models.CASCADE)
     checkID = models.ForeignKey(check, to_field='checkID', on_delete=models.CASCADE)
+    groupID = models.ForeignKey(group, to_field='groupID', on_delete=models.CASCADE)
 
     status = models.IntegerField(default=0)
     result = models.CharField(max_length=100)
@@ -196,11 +199,13 @@ class leave(models.Model):
     objects = wecheckManager()
 
     @classmethod
-    def leaveObject(cls, username, checkId, result):
+    def leaveObject(cls, username, checkID, groupID, result):
 
         new = leave()
         new.username = username
-        new.checkId = checkId
+        new.checkId = checkID
+        new.groupID = groupID
+
         new.result = result
 
         new.save()

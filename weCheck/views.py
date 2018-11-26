@@ -1511,7 +1511,7 @@ def groupleave(request):
     用户发出请假请求，数据库插入请假记录
     :param request:
                     groupId:
-                    reason:
+                    result:
     :return:
     '''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
@@ -1519,13 +1519,14 @@ def groupleave(request):
 
     if request.method == 'POST':
 
-        groupID = request.POST.get('group_id')
+        group_id = request.POST.get('group_id')
         result = request.POST.get('result')
 
-        checkrecorde = models.check.objects.get_or_none(Q(groupID=groupID)&Q(enable=True))
+        groupID = models.group.objects.get_or_none(Q(groupID=group_id))
+        checkrecorde = models.check.objects.get_or_none(Q(groupID=groupID) & Q(enable=True))
 
 
-        new_leave = models.leave.leaveObject(user, checkrecorde, result)
+        new_leave = models.leave.leaveObject(user, checkrecorde, groupID, result)
 
         return JsonResponse(
             {
@@ -1543,13 +1544,17 @@ def leave(request):
 
         groupID = request.GET.get('group_id')
 
+
         leave_list = models.leave.objects.filter(Q(groupID=groupID) & Q(status=0))
+
 
         for each in leave_list:
             leaves.append(
                 {
-                    'name':each.username.name,
-                    'result':each.result,
+                    'leave_id': each.username.checkID,
+                    'username': each.username.username,
+                    'name': each.username.name,
+                    'result': each.result,
                 }
             )
 
