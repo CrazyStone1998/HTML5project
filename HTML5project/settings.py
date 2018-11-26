@@ -46,9 +46,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'weCheck',
-    'xadmin',
-    'crispy_forms',
-    'reversion',
 ]
 
 MIDDLEWARE = [
