@@ -1590,11 +1590,8 @@ def leave(request):
         for each in leave_list:
             leaves.append(
                 {
-<<<<<<< HEAD
                     'leave_id': each.leaveID,
-=======
-                    'leave_id': each.checkID,
->>>>>>> 9f5bb21d7e0cdb0b56b141158d8ad4fa67daf455
+
                     'username': each.username.username,
                     'name': each.username.name,
                     'result': each.result,
