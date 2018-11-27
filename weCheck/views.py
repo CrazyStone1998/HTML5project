@@ -1628,6 +1628,7 @@ def datarecord(request, groupID):
                 if not data_raw.get(each_member):
                     data_raw[each_member] = {
                         'username': each_member,
+                        'name': models.user.objects.get_or_none(username=each_member).name,
                         'missed': 0,
                         'leave': 0,
                         'sum': 1,
