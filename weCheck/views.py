@@ -1590,11 +1590,8 @@ def leave(request):
         for each in leave_list:
             leaves.append(
                 {
-<<<<<<< HEAD
                     'leave_id': each.leaveID,
-=======
-                    'leave_id': each.checkID,
->>>>>>> 9f5bb21d7e0cdb0b56b141158d8ad4fa67daf455
+
                     'username': each.username.username,
                     'name': each.username.name,
                     'result': each.result,
@@ -1630,7 +1627,7 @@ def datarecord(request, groupID):
             for each_member in member_list:
                 if not data_raw.get(each_member):
                     data_raw[each_member] = {
-                        'user_name': each_member,
+                        'username': each_member,
                         'missed': 0,
                         'leave': 0,
                         'sum': 1,
