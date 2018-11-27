@@ -1654,14 +1654,14 @@ def datarecord(request, groupID):
         for each_key in data_raw.keys():
             data_raw[each_key]['missed'] = data_raw[each_key]['sum'] - data_raw[each_key]['leave'] - data_raw[each_key]['done']
             data_raw[each_key]['done_percent'] = '{:.2%}'.format(data_raw[each_key]['done'] / data_raw[each_key]['sum'])
-
-    return JsonResponse(
-        {
-            'status': 200,
-            'message': 'OK',
-            'data': list(data_raw.values())
-        }
-    )
+        data_raw_sorted = sorted(list(data_raw.values()),key= lambda x: float(x['done_percent'][:-1]),reverse=True)
+        return JsonResponse(
+            {
+                'status': 200,
+                'message': 'OK',
+                'data': data_raw_sorted,
+            }
+        )
 
 def leaveresponse(request):
     '''
