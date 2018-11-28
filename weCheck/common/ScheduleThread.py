@@ -2,6 +2,8 @@
 
 from weCheck.models import check
 from weCheck.models import checkPlan
+from weCheck.models import leave
+from django.db.models import F,Q
 import datetime
 import time
 import threading
@@ -131,6 +133,11 @@ class scheduleThread(threading.Thread):
         dateTarget = now + datetime.timedelta(minutes=int(duration))
         while True:
             if time.strftime('%Y%m%d%H:%M') == dateTarget.strftime('%Y%m%d%H:%M'):
+                '''
+                关闭签到时，管理未处理请假请求
+                '''
+                leaveUpdate(new.checkID)
+
                 new.enable = False
                 new.save()
                 break
@@ -150,9 +157,19 @@ def deleteScheduleThread(name):
         if thread.getName() == name:
             stop_thread(thread)
 
-def leaveUpdate(groupID):
+def leaveUpdate(checkID):
     '''
     签到关闭时 管理未处理的请假请求
     :param groupID:
     :return:
     '''
+
+    leave_list = leave.objects.filter(Q(checkID=checkID) & Q(status=0))
+
+    for each_leave in leave_list:
+
+        each_leave.status = 2
+        each_leave.reMsg = '自动拒绝'
+        each_leave.save()
+
+

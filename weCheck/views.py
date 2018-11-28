@@ -10,6 +10,7 @@ from common.auth.userSystem import userSystem
 from common.decorator.ajax_post_only import ajax_post_only
 from django.views.decorators.cache import never_cache
 from weCheck.common import ScheduleThread
+from weCheck.common.ScheduleThread import leaveUpdate
 import math
 import os
 import time
@@ -163,7 +164,6 @@ def register(request):
             'message':error,
         })
 
-
 def user_splitter(request,GET=None,POST=None):
     '''
     获取用户信息 分流器
@@ -254,7 +254,6 @@ def userPOST(request):
         'status':200,
         'message':'success'
     })
-
 
 @never_cache
 def group(request):
@@ -645,8 +644,6 @@ def grouplist(request):
                              'message':"user not exist "
                              })
 
-
-
 # 创建group
 @ajax_post_only
 def groupadd(request):
@@ -731,6 +728,7 @@ def groupquit(request):
         return JsonResponse({'status':202,
                              'message':'user type error you must be user or group id error group not exist'
                              })
+
 @ajax_post_only
 def groupupdate(request):
     id = request.POST.get('id')
@@ -770,6 +768,7 @@ def groupupdate(request):
     else:
         return JsonResponse({'status':202,
                              'message':'group not exist '})
+
 @ajax_post_only
 def groupdelete(request):
     id = request.POST.get('id')
@@ -790,7 +789,6 @@ def groupdelete(request):
             'status':202,
             'message':'group not exist'
         })
-
 
 def history(request,id):
     uname = userSystem(request).getUsername()
@@ -894,6 +892,7 @@ def userhistory(request,groupID,username):
                 'message': 'group is not exist'
             }
             )
+
 @never_cache
 def checkstatus(request):
     user = models.user.objects.get_or_none(username= userSystem(request).getUsername())
@@ -971,8 +970,6 @@ def checkstatus(request):
                 "future":futureList_request,
             }
         })
-
-
 
 @ajax_post_only
 def checkcheck(request):
@@ -1079,9 +1076,13 @@ def checkcheck(request):
             "message": error
         })
 
-#开启即时签到
 @ajax_post_only
 def checkenable(request):
+    '''
+    开启即时签到
+    :param request:
+    :return:
+    '''
     error = ''
     user = models.user.objects.get_or_none(username=userSystem(request).getUsername())
     if user is not None:
@@ -1137,6 +1138,9 @@ def checkdisable(request):
                 c=i
             c.enable = False
             c.save()
+            # 签到关闭 请假请求后处理
+            leaveUpdate(c.checkID)
+
             return JsonResponse({
                 "status": 200,
                 "message": "ok"
