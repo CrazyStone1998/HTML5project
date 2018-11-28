@@ -1581,12 +1581,15 @@ def groupleave(request):
         groupID = models.group.objects.get_or_none(groupID=group_id)
         checkID = models.check.objects.filter(Q(groupID=groupID) & Q(enable=True))[0]
 
-        print(checkID)
 
-        leave_exist = models.leave.objects.get_or_none(Q(username=user) & Q(checkID=checkID) & Q(status=0))
+        leave_exist = models.leave.objects.filter(Q(username=user) & Q(checkID=checkID) & Q(status=0))
         if leave_exist:
-            leave_exist.reMsg = result
-            leave_exist.save()
+            if leave_exist[0]:
+
+                leave_exist.reMsg = result
+                leave_exist.save()
+            else:
+                new_leave = models.leave.leaveObject(user, checkID, groupID, result)
         else:
 
             new_leave = models.leave.leaveObject(user, checkID, groupID, result)
