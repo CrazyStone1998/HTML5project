@@ -1643,6 +1643,7 @@ def datarecord(request, groupID):
 
 
             for each_member in member_list:
+                print(each_member)
                 if models.user.objects.get_or_none(username=each_member):
                     if not data_raw.get(each_member):
                         data_raw[each_member] = {
@@ -1670,10 +1671,12 @@ def datarecord(request, groupID):
                 if each_result:
 
                     data_raw[each_result]['done'] = data_raw[each_result]['done'] + 1
-
+        
         for each_key in data_raw.keys():
             data_raw[each_key]['missed'] = data_raw[each_key]['sum'] - data_raw[each_key]['leave'] - data_raw[each_key]['done']
             data_raw[each_key]['done_percent'] = '{:.2%}'.format(data_raw[each_key]['done'] / data_raw[each_key]['sum'])
+        print('---------------------')
+        print(data_raw)
         data_raw_sorted = sorted(list(data_raw.values()), key=lambda x: float(x['done_percent'][:-1]),reverse=True)
         return JsonResponse(
             {
