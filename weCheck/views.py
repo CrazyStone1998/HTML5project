@@ -1594,6 +1594,16 @@ def groupleave(request):
                 leave_exist[0].reMsg = result
                 leave_exist[0].save()
 
+                return JsonResponse(
+                    {
+                        'status': 200,
+                        'message': 'OK',
+                        'data': {
+                            'leaveID': leave_exist[0].leaveID,
+                        },
+                    }
+                )
+
             else:
                 new_leave = models.leave.leaveObject(user, checkID, groupID, result)
         else:
