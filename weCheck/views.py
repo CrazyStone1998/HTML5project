@@ -1625,18 +1625,19 @@ def datarecord(request, groupID):
 
 
             for each_member in member_list:
-                if not data_raw.get(each_member):
-                    data_raw[each_member] = {
-                        'username': each_member,
-                        'name': models.user.objects.get_or_none(username=each_member).name,
-                        'missed': 0,
-                        'leave': 0,
-                        'sum': 1,
-                        'done': 0,
-                        'done_percent': '',
-                    }
-                else:
-                    data_raw[each_member]['sum'] = data_raw[each_member]['sum'] + 1
+                if models.user.objects.get_or_none(username=each_member):
+                    if not data_raw.get(each_member):
+                        data_raw[each_member] = {
+                            'username': each_member,
+                            'name': models.user.objects.get_or_none(username=each_member).name,
+                            'missed': 0,
+                            'leave': 0,
+                            'sum': 1,
+                            'done': 0,
+                            'done_percent': '',
+                        }
+                    else:
+                        data_raw[each_member]['sum'] = data_raw[each_member]['sum'] + 1
 
             leave_list = models.leave.objects.filter(checkID=checkID)
 
@@ -1697,4 +1698,17 @@ def leaveresponse(request):
     )
 
 
+def leavefeedback(request,groupID):
+    '''
 
+    :param request:
+    :return:
+    '''
+
+    return JsonResponse(
+        {
+            'status': 200,
+            'message': '未完成',
+            'data': {}
+        }
+    )
