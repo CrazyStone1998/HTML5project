@@ -1646,7 +1646,7 @@ def datarecord(request, groupID):
                         'leave': 0,
                         'sum': 0,
                         'done': 0,
-                        'done_percent': '',
+                        'done_percent': '0.00%',
                     }
 
         for each_check in check_data_list:
@@ -1688,7 +1688,8 @@ def datarecord(request, groupID):
 
         for each_key in data_raw.keys():
             data_raw[each_key]['missed'] = data_raw[each_key]['sum'] - data_raw[each_key]['leave'] - data_raw[each_key]['done']
-            data_raw[each_key]['done_percent'] = '{:.2%}'.format(data_raw[each_key]['done'] / data_raw[each_key]['sum'])
+            if not data_raw[each_key]['sum']:
+                data_raw[each_key]['done_percent'] = '{:.2%}'.format(data_raw[each_key]['done'] / data_raw[each_key]['sum'])
         data_raw_sorted = sorted(list(data_raw.values()), key=lambda x: float(x['done_percent'][:-1]),reverse=True)
         return JsonResponse(
             {
