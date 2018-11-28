@@ -1590,8 +1590,9 @@ def groupleave(request):
         if leave_exist:
             if leave_exist[0]:
 
-                leave_exist.reMsg = result
-                leave_exist.save()
+                leave_exist[0].reMsg = result
+                leave_exist[0].save()
+
             else:
                 new_leave = models.leave.leaveObject(user, checkID, groupID, result)
         else:
