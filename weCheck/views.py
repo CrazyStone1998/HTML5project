@@ -1591,7 +1591,7 @@ def groupleave(request):
         if leave_exist:
             if leave_exist[0]:
 
-                leave_exist[0].reMsg = result
+                leave_exist[0].result = result
                 leave_exist[0].save()
 
                 return JsonResponse(
