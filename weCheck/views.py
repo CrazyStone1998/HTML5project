@@ -1575,6 +1575,7 @@ def groupleave(request):
         )
 
 #管理端 回应
+@never_cache
 def leave(request):
 
     leaves = []
@@ -1608,7 +1609,7 @@ def leave(request):
             }
         )
 
-#
+@never_cache
 def datarecord(request, groupID):
 
     data_raw = {}
@@ -1697,7 +1698,7 @@ def leaveresponse(request):
         }
     )
 
-
+@never_cache
 def leavefeedback(request, leaveID):
     '''
 
