@@ -1566,7 +1566,7 @@ def groupleave(request):
     '''
     用户发出请假请求，数据库插入请假记录
     :param request:
-                    groupId:
+                    group_id:
                     result:
     :return:
     '''
@@ -1579,10 +1579,15 @@ def groupleave(request):
         result = request.POST.get('result')
 
         groupID = models.group.objects.get_or_none(groupID=group_id)
-        checkrecorde = models.check.objects.filter(Q(groupID=groupID))[0]
+        checkID = models.check.objects.filter(Q(groupID=groupID) & Q(enable=True))[0]
 
-        print('123')
-        new_leave = models.leave.leaveObject(user, checkrecorde, groupID, result)
+        leave_exist = models.leave.objects.filter(Q(username=user) & Q(checkID=checkID) & Q(status=0))[0]
+        if leave_exist:
+            leave_exist.reMsg = result
+            leave_exist.save()
+        else:
+
+            new_leave = models.leave.leaveObject(user, checkID, groupID, result)
 
         return JsonResponse(
             {
@@ -1591,17 +1596,19 @@ def groupleave(request):
             }
         )
 
-#管理端 回应
+#老师获取请假请求
 @never_cache
 def leave(request):
+    '''
 
+    :param request:
+    :return:
+    '''
     leaves = []
 
     if request.method == 'GET':
 
         groupID = request.GET.get('group_id')
-        print('------------------')
-        print(groupID)
 
         leave_list = models.leave.objects.filter(Q(groupID=groupID) & Q(status=0))
 
@@ -1626,6 +1633,73 @@ def leave(request):
                 }
             }
         )
+
+
+def leaveresponse(request):
+    '''
+
+    :param request:
+    :return:
+    '''
+
+    if request.method == 'POST':
+
+        leave_id = request.POST.get('leave_id')
+        leave_response = request.POST.get('leave_response')
+        leave_msg = request.POST.get('leave_msg')
+
+        leaveID = models.leave.objects.get_or_none(leaveID=leave_id)
+
+        if leave_response:
+
+            leaveID.status = 1
+        else:
+
+            leaveID.status = 2
+
+        leaveID.reMsg = leave_msg
+
+        leaveID.save()
+
+    return JsonResponse(
+        {
+            'status': 200,
+            'message': 'OK',
+        }
+    )
+
+@never_cache
+def leavefeedback(request, leaveID):
+    '''
+
+    :param request:
+    :return:
+    '''
+    # 获取当前用户
+    # 获取当前签到（开启状态）
+    leave = models.leave.objects.get_or_none(leaveID=leaveID)
+
+    if leave:
+
+        return JsonResponse(
+            {
+                'status': 200,
+                'message': 'success',
+                'data': {
+                    'leaveID': leave.leaveID,
+                    'leave_status': leave.status,
+                    'leave_msg': leave.reMsg,
+                    'leave_result': leave.result,
+                }
+            }
+        )
+    return JsonResponse(
+        {
+            'status': 202,
+            'message': 'leave is closed'
+
+        }
+    )
 
 @never_cache
 def datarecord(request, groupID):
@@ -1699,69 +1773,3 @@ def datarecord(request, groupID):
                 'data': data_raw_sorted,
             }
         )
-
-def leaveresponse(request):
-    '''
-
-    :param request:
-    :return:
-    '''
-
-    if request.method == 'POST':
-
-        leave_id = request.POST.get('leave_id')
-        leave_response = request.POST.get('leave_response')
-        leave_msg = request.POST.get('leave_msg')
-
-        leaveID = models.leave.objects.get_or_none(leaveID=leave_id)
-
-        if leave_response:
-
-            leaveID.status = 1
-        else:
-
-            leaveID.status = 2
-
-        leaveID.reMsg = leave_msg
-
-        leaveID.save()
-
-    return JsonResponse(
-        {
-            'status': 200,
-            'message': 'OK',
-        }
-    )
-
-@never_cache
-def leavefeedback(request, leaveID):
-    '''
-
-    :param request:
-    :return:
-    '''
-    # 获取当前用户
-    # 获取当前签到（开启状态）
-    leave = models.leave.objects.get_or_none(leaveID=leaveID)
-
-    if leave:
-
-        return JsonResponse(
-            {
-                'status': 200,
-                'message': 'success',
-                'data': {
-                    'leaveID': leave.leaveID,
-                    'leave_status': leave.status,
-                    'leave_msg': leave.reMsg,
-                    'leave_result': leave.result,
-                }
-            }
-        )
-    return JsonResponse(
-        {
-            'status': 202,
-            'message': 'leave is closed'
-
-        }
-    )
