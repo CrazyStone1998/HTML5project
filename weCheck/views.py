@@ -1602,6 +1602,7 @@ def groupleave(request):
             {
                 'status': 200,
                 'message': 'OK',
+                'leaveID': new_leave.leaveID,
             }
         )
 
