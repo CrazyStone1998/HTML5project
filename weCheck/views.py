@@ -1645,7 +1645,8 @@ def datarecord(request, groupID):
 
             if leave_list:
                 for each_leave in leave_list:
-                    data_raw[each_leave.username.username]['leave'] = data_raw[each_leave.username.username]['leave'] + 1
+                    if each_leave.status == 1:
+                        data_raw[each_leave.username.username]['leave'] = data_raw[each_leave.username.username]['leave'] + 1
 
             results_list = each_check.results.split(',')
             for each_result in results_list[1:]:
