@@ -1621,7 +1621,7 @@ def datarecord(request, groupID):
 
             checkID = each_check.checkID
 
-            member_list = each_check.members.split(' ')
+            member_list = (each_check.members).split(' ')
 
 
             for each_member in member_list:
@@ -1655,7 +1655,7 @@ def datarecord(request, groupID):
         for each_key in data_raw.keys():
             data_raw[each_key]['missed'] = data_raw[each_key]['sum'] - data_raw[each_key]['leave'] - data_raw[each_key]['done']
             data_raw[each_key]['done_percent'] = '{:.2%}'.format(data_raw[each_key]['done'] / data_raw[each_key]['sum'])
-        data_raw_sorted = sorted(list(data_raw.values()),key= lambda x: float(x['done_percent'][:-1]),reverse=True)
+        data_raw_sorted = sorted(list(data_raw.values()), key=lambda x: float(x['done_percent'][:-1]),reverse=True)
         return JsonResponse(
             {
                 'status': 200,
@@ -1698,17 +1698,34 @@ def leaveresponse(request):
     )
 
 
-def leavefeedback(request,groupID):
+def leavefeedback(request, leaveID):
     '''
 
     :param request:
     :return:
     '''
+    # 获取当前用户
+    # 获取当前签到（开启状态）
+    leave = models.leave.objects.get_or_none(leaveID=leaveID)
 
+    if leave:
+
+        return JsonResponse(
+            {
+                'status': 200,
+                'message': 'success',
+                'data': {
+                    'leaveID': leave.leaveID,
+                    'leave_status': leave.status,
+                    'leave_msg': leave.reMsg,
+                    'leave_result': leave.result,
+                }
+            }
+        )
     return JsonResponse(
         {
-            'status': 200,
-            'message': '未完成',
-            'data': {}
+            'status': 202,
+            'message': 'leave is closed'
+
         }
     )
