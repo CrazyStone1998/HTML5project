@@ -29,7 +29,7 @@ urlpatterns = [
     re_path(r'^leave/*$',           views.leave,          name='leave'),
     re_path(r'^leave/response$',    views.leaveresponse,  name='leaveresponse'),
 
-    re_path(r'^leave/(?P<leaveID>[\d\w]{6})/feedback/*$', views.leavefeedback, name='leavefeedback'),
+    re_path(r'^leave/(?P<leaveID>)/feedback/*$', views.leavefeedback, name='leavefeedback'),
     re_path(r'^group/(?P<groupID>[\d\w]{6})/user/record/*$', views.datarecord, name='datareord'),
     re_path(r'^group/(?P<groupID>[\d\w]{6})/user/(?P<username>.+)/*$', views.userhistory, name='userhistory'),# access:user
     re_path(r'^history/(?P<id>[\d\w]{6}/*$)', views.history, name='history'),  # access : all
