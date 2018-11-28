@@ -150,3 +150,9 @@ def deleteScheduleThread(name):
         if thread.getName() == name:
             stop_thread(thread)
 
+def leaveUpdate(groupID):
+    '''
+    签到关闭时 管理未处理的请假请求
+    :param groupID:
+    :return:
+    '''
