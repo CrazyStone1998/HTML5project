@@ -1509,35 +1509,52 @@ def record(request,checkID):
             })
         else:
             starttime = str(check.startDate) + "T" + check.startUpTime + "Z"
-            memeber = check.members.split(" ")
-            result = check.results.strip(" ,").split(",")
-            doneList = []
-            missedList = []
-            leaveList = []
-            for m in memeber:
-                m_name = (models.user.objects.get(username=m)).name
-                s = {
-                    "username": m,
-                    "name": m_name,
-                }
-                if m in result:
-                    doneList.append(s)
-                elif m in leavenameList:
-                    leaveList.append(s)
-                else:
-                    missedList.append(s)
-            return JsonResponse({
-                "status": 200,
-                "message": "OK",
-                "data": {
-                    "id": checkID,
-                    "startUpTime": starttime,
-                    "duration": check.duration,
-                    "done": doneList,
-                    "missed": missedList,
-                    'leave':leaveList
-                }
-            })
+            if check.members:
+                memeber = check.members.split(" ")
+                result = check.results.strip(" ,").split(",")
+                doneList = []
+                missedList = []
+                leaveList = []
+                for m in memeber:
+                    m_name = (models.user.objects.get(username=m)).name
+                    s = {
+                        "username": m,
+                        "name": m_name,
+                    }
+                    if m in result:
+                        doneList.append(s)
+                    elif m in leavenameList:
+                        leaveList.append(s)
+                    else:
+                        missedList.append(s)
+                return JsonResponse({
+                    "status": 200,
+                    "message": "OK",
+                    "data": {
+                        "id": checkID,
+                        "startUpTime": starttime,
+                        "duration": check.duration,
+                        "done": doneList,
+                        "missed": missedList,
+                        'leave':leaveList
+                    }
+                })
+            else:
+                doneList = []
+                missedList = []
+                leaveList = []
+                return JsonResponse({
+                    "status": 200,
+                    "message": "OK",
+                    "data": {
+                        "id": checkID,
+                        "startUpTime": starttime,
+                        "duration": check.duration,
+                        "done": doneList,
+                        "missed": missedList,
+                        'leave': leaveList
+                    }
+                })
     else:
         return JsonResponse({
             "status": 202,
