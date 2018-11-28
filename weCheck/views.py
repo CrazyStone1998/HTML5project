@@ -1587,6 +1587,7 @@ def groupleave(request):
 
 
         leave_exist = models.leave.objects.filter(Q(username=user) & Q(checkID=checkID) & Q(status=0))
+        new_leave = None
         if leave_exist:
             if leave_exist[0]:
 
