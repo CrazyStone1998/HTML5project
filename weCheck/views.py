@@ -1600,11 +1600,12 @@ def leave(request):
     if request.method == 'GET':
 
         groupID = request.GET.get('group_id')
-
+        print('------------------')
+        print(groupID)
 
         leave_list = models.leave.objects.filter(Q(groupID=groupID) & Q(status=0))
 
-
+        print(leave_list)
         for each in leave_list:
             leaves.append(
                 {
