@@ -195,6 +195,7 @@ class leave(models.Model):
     result = models.CharField(max_length=100)
     reMsg = models.CharField(max_length=100)
 
+    valid = models.BooleanField(default=True)
 
     objects = wecheckManager()
 
