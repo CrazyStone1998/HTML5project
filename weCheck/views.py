@@ -1011,6 +1011,10 @@ def checkcheck(request):
                     m = m + "," + username
                     c.results = m
                     c.save()
+
+                    #签到时 将请假信息清除
+                    leavevalid(c, user)
+
                     return JsonResponse({
                         "status": 200,
                         "message": "ok"
@@ -1033,6 +1037,9 @@ def checkcheck(request):
                             m = m + "," + username
                             c.results = m
                             c.save()
+
+                            # 签到时 将请假信息清除
+                            leavevalid(c, user)
                             return JsonResponse({
                                 "status": 200,
                                 "message": "ok"
@@ -1056,6 +1063,9 @@ def checkcheck(request):
                             m = m + "," + username
                             c.results = m
                             c.save()
+
+                            # 签到时 将请假信息清除
+                            leavevalid(c, user)
 
                             return JsonResponse({
                                 "status": 200,
@@ -1797,3 +1807,17 @@ def datarecord(request, groupID):
                 'data': data_raw_sorted,
             }
         )
+
+def leavevalid(check,user):
+    '''
+
+    :param check:
+    :param user:
+    :return:
+    '''
+    leave_list = models.leave.objects.filter(Q(checkID=check) & Q(username=user) & Q(status=1))
+    for each_leave in leave_list:
+
+        each_leave.valid = False
+
+        each_leave.save()
