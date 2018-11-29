@@ -1684,10 +1684,10 @@ def leaveresponse(request):
 
         leaveID = models.leave.objects.get_or_none(leaveID=leave_id)
 
-        if leave_response:
+        if leave_response == 'true':
 
             leaveID.status = 1
-        else:
+        elif leave_response == 'false':
 
             leaveID.status = 2
 
