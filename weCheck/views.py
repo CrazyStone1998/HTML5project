@@ -1684,6 +1684,9 @@ def leaveresponse(request):
 
         leaveID = models.leave.objects.get_or_none(leaveID=leave_id)
 
+        print('---------------------')
+        print(leave_response)
+
         if leave_response == 'true':
 
             leaveID.status = 1
