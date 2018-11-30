@@ -1646,7 +1646,6 @@ def leave(request):
 
         leave_list = models.leave.objects.filter(Q(groupID=groupID) & Q(status=0))
 
-        print(leave_list)
         for each in leave_list:
             leaves.append(
                 {
@@ -1684,8 +1683,6 @@ def leaveresponse(request):
 
         leaveID = models.leave.objects.get_or_none(leaveID=leave_id)
 
-        print('---------------------')
-        print(leave_response)
 
         if leave_response == 'true':
 
@@ -1769,7 +1766,6 @@ def datarecord(request, groupID):
 
 
             for each_member in member_list:
-                print(each_member)
                 if models.user.objects.get_or_none(username=each_member):
                     if not data_raw.get(each_member):
                         data_raw[each_member] = {
