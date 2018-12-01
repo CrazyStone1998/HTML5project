@@ -74,6 +74,7 @@ class userSystem(object):
             sessionID = self.request.session.get('sessionID')
 
             if re.exists('sessionID_%s' % sessionID):
+                print('will delete something')
                 re.delete('sessionID_%s' % sessionID)
             return True
         return False
@@ -144,7 +145,7 @@ class userSystem(object):
 
             # set session
             re.hmset('sessionID_%s' % self.sessionID, {'username': self.username, 'token': self.token})
-
+            re.expire('sessionID_%s' % self.sessionID, 7*60*60)
         return True
 
 
