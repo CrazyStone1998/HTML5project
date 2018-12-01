@@ -109,6 +109,10 @@ class userSystem(object):
             token_redis = re.hget('sessionID_%s' % self.sessionID,'token').decode()
             username_redis = re.hget('sessionID_%s' % self.sessionID,'username').decode()
 
+            print('-----------')
+            print(token_redis)
+            print(username_redis)
+
             if token_redis == self.token:
                 return username_redis
         return None
