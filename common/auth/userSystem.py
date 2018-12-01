@@ -99,6 +99,11 @@ class userSystem(object):
         self.sessionID = self.request.session.get('sessionID')
         self.token = self.request.session.get('token')
 
+        print('---------------')
+        print('seddionID: %s' %self.sessionID)
+        print('token: %s' % self.token)
+        print(re.exists('sessionID_%s' % self.sessionID))
+
         if re.exists('sessionID_%s' % self.sessionID):
 
             token_redis = re.hget('sessionID_%s' % self.sessionID,'token').decode()
